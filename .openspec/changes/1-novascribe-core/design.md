@@ -6,7 +6,7 @@ NovaScribe 採用 Next.js 16.1 (App Router) 架構，實現前後端分離但程
 ### 後端與 API
 - **資料庫**：PostgreSQL (搭配 Prisma ORM) 存儲核心數據。
 - **向量搜尋**：啟用 `pgvector` 擴充，將文章內容轉化為 Embedding 向量存儲，以實現語義搜尋。
-- **身分驗證**：Auth.js (NextAuth) 保護 `/dashboard` 路徑，支援 GitHub/Google 登入。
+- **身分驗證**：Auth.js (NextAuth) 保護 `/dashboard` 路徑，支援 GitHub/Google 登入（目前暫不實作 MFA）。
 - **圖片存儲**：初始使用本地 `public/uploads`，透過抽象接口準備未來遷移至 Cloudflare R2。
 
 ### 前端表現層

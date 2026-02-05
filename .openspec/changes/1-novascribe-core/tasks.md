@@ -4,7 +4,7 @@
 - [ ] 初始化 Next.js 16.1 (App Router) 專案並配置 Tailwind CSS <!-- id: 0 -->
 - [ ] 建立 PostgreSQL 資料庫並配置 Prisma ORM <!-- id: 1 -->
 - [ ] 啟用並配置 `pgvector` 擴充與向量運算邏輯 <!-- id: 2 -->
-- [ ] 整合 Auth.js 並實作後台登入保護 (Middleware) <!-- id: 3 -->
+- [ ] 整合 Auth.js 並實作後台登入保護 (Middleware，暫不包含 MFA) <!-- id: 3 -->
 
 ## 第二階段：後台管理功能 (Dashboard)
 - [ ] 實作文章 CRUD API 與分頁管理介面 <!-- id: 4 -->
@@ -27,3 +27,9 @@
 ## 第五階段：AI 增強功能 (3.3)
 - [ ] 實作 AI 自動摘要生成功能 <!-- id: 16 -->
 - [ ] 實作智慧標籤與分類建議邏輯 <!-- id: 17 -->
+
+## 第六階段：測試與部署
+- [ ] 撰寫關鍵組件的 Unit Test (Jest) <!-- id: 18 -->
+- [ ] 撰寫關鍵流程的 E2E Test (Playwright) <!-- id: 19 -->
+- [ ] 部署至生產環境並驗證 ISR 與 PWA 功能 <!-- id: 20 -->
+
