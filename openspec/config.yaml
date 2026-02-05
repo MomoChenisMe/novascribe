@@ -4,6 +4,7 @@ schema: spec-driven
 context: |
   Language Preference: All documents (proposals, specs, designs, tasks) must be written in Traditional Chinese (Taiwan).
   Tech stack: Next.js 15+, Tailwind CSS, PostgreSQL, AI Integration.
+  Development Methodology: Strictly follow Test-Driven Development (TDD).
 
 # Per-artifact rules (optional)
 rules:
@@ -15,3 +16,4 @@ rules:
     - Use Traditional Chinese (Taiwan).
   tasks:
     - Use Traditional Chinese (Taiwan).
+    - Ensure all implementation tasks include a "Write tests first" step (TDD).
