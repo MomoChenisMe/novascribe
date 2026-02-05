@@ -1,20 +1,17 @@
 schema: spec-driven
 
 # Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Language Preference: All documents (proposals, specs, designs, tasks) must be written in Traditional Chinese (Taiwan).
+  Tech stack: Next.js 15+, Tailwind CSS, PostgreSQL, AI Integration.
 
 # Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Use Traditional Chinese (Taiwan).
+  specs:
+    - Use Traditional Chinese (Taiwan).
+  design:
+    - Use Traditional Chinese (Taiwan).
+  tasks:
+    - Use Traditional Chinese (Taiwan).
