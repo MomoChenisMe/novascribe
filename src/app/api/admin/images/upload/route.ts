@@ -4,6 +4,11 @@ import { prisma } from "@/lib/db";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import {
+  processImage,
+  generateThumbnails,
+  generateAltText,
+} from "@/lib/image-processing";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
@@ -60,15 +65,36 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const rawBuffer = Buffer.from(await file.arrayBuffer());
     const hash = crypto.randomBytes(4).toString("hex");
     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
     const ext = path.extname(file.name) || ".jpg";
-    const filename = `${dateStr}_${hash}${ext}`;
+    const baseName = `${dateStr}_${hash}`;
+    const filename = `${baseName}${ext}`;
     const filePath = path.join(uploadDir, filename);
     const urlPath = `/uploads/images/${year}/${month}/${filename}`;
 
-    await writeFile(filePath, buffer);
+    // Process image: compress and resize
+    const processed = await processImage(rawBuffer, file.type);
+    await writeFile(filePath, processed.buffer);
+
+    // Generate thumbnails
+    const thumbNames = await generateThumbnails(
+      processed.buffer,
+      uploadDir,
+      baseName,
+      ext
+    );
+
+    const thumbUrlBase = `/uploads/images/${year}/${month}`;
+    const thumbnails = {
+      small: `${thumbUrlBase}/${thumbNames.small}`,
+      medium: `${thumbUrlBase}/${thumbNames.medium}`,
+      large: `${thumbUrlBase}/${thumbNames.large}`,
+    };
+
+    // AI Alt Text generation (non-blocking for upload success)
+    const altText = await generateAltText(processed.buffer, file.type);
 
     const image = await prisma.image.create({
       data: {
@@ -76,8 +102,12 @@ export async function POST(req: NextRequest) {
         originalFilename: file.name,
         path: filePath,
         url: urlPath,
-        size: file.size,
+        size: processed.size,
+        width: processed.width,
+        height: processed.height,
         mimeType: file.type,
+        altText,
+        altTextGenerated: altText !== null,
         uploadedBy: session.user.id,
       },
     });
@@ -87,6 +117,7 @@ export async function POST(req: NextRequest) {
       url: image.url,
       filename: image.filename,
       altText: image.altText,
+      thumbnails,
     });
   }
 
