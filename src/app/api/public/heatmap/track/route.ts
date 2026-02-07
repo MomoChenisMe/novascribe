@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import crypto from "crypto";
+import type { Prisma } from "@/generated/prisma/client";
 
 const trackSchema = z.object({
   articleId: z.string().uuid(),
@@ -9,20 +10,20 @@ const trackSchema = z.object({
   events: z.array(
     z.object({
       eventType: z.enum(["scroll", "dwell", "click", "exit"]),
-      eventData: z.record(z.unknown()),
+      eventData: z.record(z.string(), z.unknown()),
     })
   ),
 });
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const parsed = trackSchema.safeParse(body);
+  const result = trackSchema.safeParse(body);
 
-  if (!parsed.success) {
+  if (!result.success) {
     return NextResponse.json({ error: "Invalid data" }, { status: 400 });
   }
 
-  const { articleId, sessionId, events } = parsed.data;
+  const { articleId, sessionId, events } = result.data;
 
   // Hash the session ID for privacy
   const hashedSessionId = crypto
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
       articleId,
       sessionId: hashedSessionId,
       eventType: event.eventType,
-      data: event.eventData as Record<string, unknown>,
+      data: event.eventData as unknown as Prisma.InputJsonValue,
     })),
   });
 
