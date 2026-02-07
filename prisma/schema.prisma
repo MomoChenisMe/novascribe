@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth & Users ────────────────────────────────────────
+
+enum UserRole {
+  admin
+  editor
+  viewer
+}
+
+enum UserStatus {
+  active
+  inactive
+  pending
+}
+
+model User {
+  id             String     @id @default(uuid())
+  email          String     @unique
+  name           String
+  password       String
+  role           UserRole   @default(editor)
+  status         UserStatus @default(active)
+  lastLoginAt    DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  articles       Article[]
+  articleVersions ArticleVersion[]
+  images         Image[]
+  auditLogs      AuditLog[]
+
+  @@map("users")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String
+  action       String
+  resourceType String
+  resourceId   String?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Articles ────────────────────────────────────────────
+
+enum ArticleStatus {
+  draft
+  published
+  scheduled
+  archived
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articles Article[]
+
+  @@map("categories")
+}
+
+model Article {
+  id              String        @id @default(uuid())
+  title           String
+  slug            String        @unique
+  content         String        @default("")
+  excerpt         String?
+  authorId        String
+  categoryId      String?
+  tags            String[]
+  status          ArticleStatus @default(draft)
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  canonicalUrl    String?
+  isPinned        Boolean       @default(false)
+  isFeatured      Boolean       @default(false)
+  allowComments   Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  author   User      @relation(fields: [authorId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  versions       ArticleVersion[]
+  imageReferences ImageReference[]
+  heatmapEvents  HeatmapEvent[]
+
+  @@index([authorId])
+  @@index([status])
+  @@index([slug])
+  @@index([createdAt])
+  @@map("articles")
+}
+
+model ArticleVersion {
+  id            String   @id @default(uuid())
+  articleId     String
+  versionNumber Int
+  title         String
+  content       String
+  metadata      Json?
+  authorId      String
+  isProtected   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [authorId], references: [id])
+
+  @@unique([articleId, versionNumber])
+  @@index([articleId])
+  @@map("article_versions")
+}
+
+// ─── Images ──────────────────────────────────────────────
+
+model Image {
+  id               String   @id @default(uuid())
+  filename         String
+  originalFilename String
+  path             String
+  url              String
+  size             Int
+  width            Int?
+  height           Int?
+  mimeType         String
+  altText          String?
+  altTextGenerated Boolean  @default(false)
+  uploadedBy       String
+  createdAt        DateTime @default(now())
+
+  uploader   User             @relation(fields: [uploadedBy], references: [id])
+  references ImageReference[]
+
+  @@index([uploadedBy])
+  @@map("images")
+}
+
+model ImageReference {
+  id        String   @id @default(uuid())
+  imageId   String
+  articleId String
+  createdAt DateTime @default(now())
+
+  image   Image   @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([imageId, articleId])
+  @@map("image_references")
+}
+
+// ─── Heatmap ─────────────────────────────────────────────
+
+model HeatmapEvent {
+  id        String   @id @default(uuid())
+  articleId String
+  sessionId String
+  eventType String
+  data      Json
+  createdAt DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("heatmap_events")
+}
