@@ -50,6 +50,7 @@ model Post {
   category    Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   tags        PostTag[]
   versions    PostVersion[]
+  seoMetadata SeoMetadata?
 
   @@index([status])
   @@index([publishedAt])
@@ -125,4 +126,47 @@ model Media {
 
   @@index([uploadedBy])
   @@map("media")
+}
+
+model SeoMetadata {
+  id              String   @id @default(cuid())
+  postId          String   @unique
+  post            Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  metaTitle       String?  @map("meta_title") @db.VarChar(70)
+  metaDescription String?  @map("meta_description") @db.VarChar(160)
+  ogTitle         String?  @map("og_title") @db.VarChar(95)
+  ogDescription   String?  @map("og_description") @db.VarChar(200)
+  ogImage         String?  @map("og_image")
+  twitterCard     String   @default("summary_large_image") @map("twitter_card")
+  canonicalUrl    String?  @map("canonical_url")
+  noIndex         Boolean  @default(false) @map("no_index")
+  noFollow        Boolean  @default(false) @map("no_follow")
+  focusKeyword    String?  @map("focus_keyword") @db.VarChar(100)
+  seoScore        Int?     @map("seo_score")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("seo_metadata")
+}
+
+model SitemapConfig {
+  id          String   @id @default(cuid())
+  path        String   @unique
+  changefreq  String   @default("weekly")
+  priority    Float    @default(0.5)
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("sitemap_configs")
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
 }
