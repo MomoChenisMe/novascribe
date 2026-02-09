@@ -7,6 +7,7 @@ NovaScribe 的基礎架構（Next.js App Router + PostgreSQL + Prisma + NextAuth
 **現狀**：基礎架構已就緒，`users` 資料表已建立，認證系統可用。
 
 **限制條件**：
+
 - 單一管理者架構，所有 API 端點預設需認證
 - 文章支援 Markdown 格式撰寫
 - 圖片儲存需支援本地與 S3 雙模式
@@ -15,6 +16,7 @@ NovaScribe 的基礎架構（Next.js App Router + PostgreSQL + Prisma + NextAuth
 ## Goals / Non-Goals
 
 **Goals：**
+
 - 設計完整的內容管理資料庫 schema（posts、categories、tags、media、post_versions）
 - 實作文章 CRUD 與狀態管理（草稿/已發佈/排程發佈/下架）
 - 整合 Markdown 編輯器與即時預覽
@@ -25,6 +27,7 @@ NovaScribe 的基礎架構（Next.js App Router + PostgreSQL + Prisma + NextAuth
 - 建立後台儀表板統計頁面
 
 **Non-Goals：**
+
 - 前台文章渲染與頁面展示（屬於後續 change）
 - SEO meta tags 管理（屬於 seo-and-analytics change）
 - 多使用者協作與權限分級
@@ -144,6 +147,7 @@ model Media {
 ```
 
 **理由**：
+
 - `Post` 使用 `slug` 作為 URL 識別碼，支援 SEO 友善的 URL 結構
 - `PostStatus` 使用 enum 確保狀態值的型別安全
 - `PostVersion` 使用遞增 `version` 編號，搭配 `postId` 索引以加速版本查詢
@@ -153,6 +157,7 @@ model Media {
 - 所有資料表使用 `cuid()` 作為主鍵，與 `foundation-and-auth` 中的 `User` 一致
 
 **替代方案**：
+
 - 文章使用自增 ID → cuid 更安全且可避免 ID 猜測攻擊
 - 標籤直接存在 Post 的 JSON 欄位 → 獨立資料表支援標籤統計和管理
 - 版本歷史使用 JSON diff → 完整快照更簡單、回溯更可靠
@@ -163,20 +168,21 @@ model Media {
 
 #### 文章管理 API
 
-| 端點 | 方法 | 說明 |
-|------|------|------|
-| `/api/admin/posts` | GET | 取得文章列表（分頁、篩選、搜尋） |
-| `/api/admin/posts` | POST | 建立新文章 |
-| `/api/admin/posts/[id]` | GET | 取得單篇文章 |
-| `/api/admin/posts/[id]` | PUT | 更新文章 |
-| `/api/admin/posts/[id]` | DELETE | 刪除文章 |
-| `/api/admin/posts/[id]/status` | PATCH | 切換文章狀態 |
-| `/api/admin/posts/[id]/versions` | GET | 取得版本歷史列表 |
-| `/api/admin/posts/[id]/versions/[versionId]` | GET | 取得特定版本內容 |
-| `/api/admin/posts/[id]/versions/[versionId]/restore` | POST | 回溯到指定版本 |
-| `/api/admin/posts/batch` | POST | 批次操作（刪除/發佈/下架） |
+| 端點                                                 | 方法   | 說明                             |
+| ---------------------------------------------------- | ------ | -------------------------------- |
+| `/api/admin/posts`                                   | GET    | 取得文章列表（分頁、篩選、搜尋） |
+| `/api/admin/posts`                                   | POST   | 建立新文章                       |
+| `/api/admin/posts/[id]`                              | GET    | 取得單篇文章                     |
+| `/api/admin/posts/[id]`                              | PUT    | 更新文章                         |
+| `/api/admin/posts/[id]`                              | DELETE | 刪除文章                         |
+| `/api/admin/posts/[id]/status`                       | PATCH  | 切換文章狀態                     |
+| `/api/admin/posts/[id]/versions`                     | GET    | 取得版本歷史列表                 |
+| `/api/admin/posts/[id]/versions/[versionId]`         | GET    | 取得特定版本內容                 |
+| `/api/admin/posts/[id]/versions/[versionId]/restore` | POST   | 回溯到指定版本                   |
+| `/api/admin/posts/batch`                             | POST   | 批次操作（刪除/發佈/下架）       |
 
 **文章列表查詢參數**：
+
 - `page`：頁碼（預設 1）
 - `limit`：每頁數量（預設 20，最大 100）
 - `status`：狀態篩選（DRAFT / PUBLISHED / SCHEDULED / ARCHIVED）
@@ -188,53 +194,55 @@ model Media {
 
 #### 分類管理 API
 
-| 端點 | 方法 | 說明 |
-|------|------|------|
-| `/api/admin/categories` | GET | 取得分類列表（含層級結構） |
-| `/api/admin/categories` | POST | 建立分類 |
-| `/api/admin/categories/[id]` | PUT | 更新分類 |
-| `/api/admin/categories/[id]` | DELETE | 刪除分類 |
+| 端點                         | 方法   | 說明                       |
+| ---------------------------- | ------ | -------------------------- |
+| `/api/admin/categories`      | GET    | 取得分類列表（含層級結構） |
+| `/api/admin/categories`      | POST   | 建立分類                   |
+| `/api/admin/categories/[id]` | PUT    | 更新分類                   |
+| `/api/admin/categories/[id]` | DELETE | 刪除分類                   |
 
 #### 標籤管理 API
 
-| 端點 | 方法 | 說明 |
-|------|------|------|
-| `/api/admin/tags` | GET | 取得標籤列表（含使用次數） |
-| `/api/admin/tags` | POST | 建立標籤 |
-| `/api/admin/tags/[id]` | PUT | 更新標籤 |
-| `/api/admin/tags/[id]` | DELETE | 刪除標籤 |
-| `/api/admin/tags/unused` | DELETE | 清理未使用標籤 |
+| 端點                     | 方法   | 說明                       |
+| ------------------------ | ------ | -------------------------- |
+| `/api/admin/tags`        | GET    | 取得標籤列表（含使用次數） |
+| `/api/admin/tags`        | POST   | 建立標籤                   |
+| `/api/admin/tags/[id]`   | PUT    | 更新標籤                   |
+| `/api/admin/tags/[id]`   | DELETE | 刪除標籤                   |
+| `/api/admin/tags/unused` | DELETE | 清理未使用標籤             |
 
 #### 媒體管理 API
 
-| 端點 | 方法 | 說明 |
-|------|------|------|
-| `/api/admin/media` | GET | 取得媒體列表 |
-| `/api/admin/media` | POST | 上傳媒體檔案 |
+| 端點                    | 方法   | 說明         |
+| ----------------------- | ------ | ------------ |
+| `/api/admin/media`      | GET    | 取得媒體列表 |
+| `/api/admin/media`      | POST   | 上傳媒體檔案 |
 | `/api/admin/media/[id]` | DELETE | 刪除媒體檔案 |
 
 #### 匯入匯出 API
 
-| 端點 | 方法 | 說明 |
-|------|------|------|
-| `/api/admin/posts/export` | POST | 匯出文章為 Markdown |
-| `/api/admin/posts/export/batch` | POST | 批次匯出 |
-| `/api/admin/posts/import` | POST | 從 Markdown 匯入文章 |
+| 端點                            | 方法 | 說明                 |
+| ------------------------------- | ---- | -------------------- |
+| `/api/admin/posts/export`       | POST | 匯出文章為 Markdown  |
+| `/api/admin/posts/export/batch` | POST | 批次匯出             |
+| `/api/admin/posts/import`       | POST | 從 Markdown 匯入文章 |
 
 #### 儀表板 API
 
-| 端點 | 方法 | 說明 |
-|------|------|------|
-| `/api/admin/dashboard/stats` | GET | 取得統計數據 |
-| `/api/admin/dashboard/activity` | GET | 取得近期活動 |
+| 端點                            | 方法 | 說明         |
+| ------------------------------- | ---- | ------------ |
+| `/api/admin/dashboard/stats`    | GET  | 取得統計數據 |
+| `/api/admin/dashboard/activity` | GET  | 取得近期活動 |
 
 **理由**：
+
 - RESTful 風格，資源導向設計，URL 語意清晰
 - 統一使用 `/api/admin/` 前綴，方便 middleware 統一認證
 - 文章狀態切換使用獨立的 PATCH 端點，語意明確
 - 批次操作使用 POST `/batch`，body 中攜帶操作類型與目標 ID 陣列
 
 **替代方案**：
+
 - GraphQL → 對個人部落格而言 REST 已足夠，GraphQL 增加不必要的複雜度
 - tRPC → 雖然型別安全，但增加學習成本且鎖定 Next.js 生態
 
@@ -242,12 +250,13 @@ model Media {
 
 ```typescript
 // 使用 ByteMD 作為 Markdown 編輯器
-import { Editor } from "@bytemd/react";
-import gfm from "@bytemd/plugin-gfm";
-import highlight from "@bytemd/plugin-highlight";
+import { Editor } from '@bytemd/react';
+import gfm from '@bytemd/plugin-gfm';
+import highlight from '@bytemd/plugin-highlight';
 ```
 
 **理由**：
+
 - ByteMD 是字節跳動開源的 Markdown 編輯器，體積小、效能好
 - 內建分割預覽模式（編輯 + 預覽並排顯示）
 - 支援 GFM（GitHub Flavored Markdown）擴充
@@ -255,6 +264,7 @@ import highlight from "@bytemd/plugin-highlight";
 - Plugin 架構可擴充（如圖片上傳整合）
 
 **替代方案**：
+
 - @uiw/react-md-editor → 功能類似但社群較小
 - Monaco Editor → 過重，適合 IDE 而非部落格編輯器
 - 純 textarea + markdown-it → 開發成本高，使用者體驗差
@@ -274,12 +284,14 @@ async function processImage(file: File) {
 ```
 
 **理由**：
+
 - sharp 是 Node.js 最高效能的圖片處理套件，支援 WebP/AVIF 轉換
 - 限制最大上傳 10MB，避免伺服器資源被大檔案佔用
 - 自動壓縮確保頁面載入效能
 - 本地/S3 雙模式透過環境變數切換，部署彈性高
 
 **儲存策略**：
+
 - 本地模式：存放於 `public/uploads/YYYY/MM/` 目錄結構
 - S3 模式：使用 `@aws-sdk/client-s3` 上傳至指定 bucket
 - 環境變數 `STORAGE_TYPE=local|s3` 控制模式切換
@@ -294,6 +306,7 @@ async function processImage(file: File) {
 - 版本保留策略：預設保留最近 50 個版本，超過時自動刪除最舊的版本
 
 **理由**：
+
 - 完整快照比 diff 更簡單可靠，回溯時不需要重建狀態
 - 回溯後建立新版本，確保歷史可追溯
 - 50 版本上限避免資料庫無限增長
@@ -311,6 +324,7 @@ function generateSlug(text: string): string {
 ```
 
 **理由**：
+
 - slug 用於 SEO 友善的 URL（如 `/posts/my-first-blog`）
 - 中文轉拼音讓 URL 可讀（如 `我的文章` → `wo-de-wen-zhang`）
 - 自動去重避免 slug 衝突
@@ -340,12 +354,14 @@ src/app/(admin)/admin/
 ### 8. 排程發佈實作
 
 排程發佈使用以下策略：
+
 - 文章設定 `scheduledAt` 時間與 `SCHEDULED` 狀態
 - 使用 Next.js API Route 搭配外部 cron job（如 Vercel Cron 或系統 crontab）定時檢查
 - Cron 端點：`/api/cron/publish-scheduled`，每分鐘執行一次
 - 查詢所有 `status = SCHEDULED AND scheduledAt <= NOW()` 的文章，批次更新為 `PUBLISHED`
 
 **替代方案**：
+
 - 即時 setTimeout → 伺服器重啟後排程遺失
 - 訊息佇列（Bull/BullMQ）→ 對個人部落格過於複雜
 

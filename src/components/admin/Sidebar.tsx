@@ -1,0 +1,115 @@
+'use client';
+
+/**
+ * @file 側邊欄元件
+ * @description 後台管理側邊欄導覽，支援收合/展開及響應式佈局。
+ *   - 導覽項目：儀表板、文章、分類、標籤、媒體、SEO、設定
+ *   - 當前頁面高亮（使用 usePathname()）
+ *   - 可收合/展開（桌面模式）
+ */
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+/** 導覽項目定義 */
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+}
+
+/** Sidebar 元件 props */
+interface SidebarProps {
+  /** 是否收合 */
+  collapsed: boolean;
+  /** 切換收合/展開 */
+  onToggle: () => void;
+}
+
+/** SVG icon 元件（簡化版，使用 emoji 作為替代） */
+function NavIcon({ label }: { label: string }) {
+  const icons: Record<string, string> = {
+    儀表板: '📊',
+    文章: '📝',
+    分類: '📁',
+    標籤: '🏷️',
+    媒體: '🖼️',
+    SEO: '🔍',
+    設定: '⚙️',
+  };
+  return <span aria-hidden="true">{icons[label] || '📄'}</span>;
+}
+
+/** 導覽項目清單 */
+const navItems: NavItem[] = [
+  { label: '儀表板', href: '/admin', icon: <NavIcon label="儀表板" /> },
+  { label: '文章', href: '/admin/posts', icon: <NavIcon label="文章" /> },
+  { label: '分類', href: '/admin/categories', icon: <NavIcon label="分類" /> },
+  { label: '標籤', href: '/admin/tags', icon: <NavIcon label="標籤" /> },
+  { label: '媒體', href: '/admin/media', icon: <NavIcon label="媒體" /> },
+  { label: 'SEO', href: '/admin/seo', icon: <NavIcon label="SEO" /> },
+  { label: '設定', href: '/admin/settings', icon: <NavIcon label="設定" /> },
+];
+
+/**
+ * 判斷路徑是否為當前頁面
+ * - /admin 精確匹配
+ * - 其他頁面支援子路徑匹配（如 /admin/posts/123 匹配 /admin/posts）
+ */
+function isActive(pathname: string, href: string): boolean {
+  if (href === '/admin') {
+    return pathname === '/admin';
+  }
+  return pathname.startsWith(href);
+}
+
+export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+  const pathname = usePathname();
+
+  return (
+    <nav
+      aria-label="側邊欄"
+      className={`flex h-full flex-col bg-gray-900 text-white transition-all duration-300 ${
+        collapsed ? 'w-16' : 'w-64'
+      }`}
+    >
+      {/* 導覽項目 */}
+      <ul className="flex-1 space-y-1 px-2 py-4">
+        {navItems.map((item) => {
+          const active = isActive(pathname, item.href);
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                className={`flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  active
+                    ? 'bg-gray-800 text-white'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                } ${collapsed ? 'justify-center' : 'gap-3'}`}
+              >
+                <span className="flex-shrink-0 text-lg">{item.icon}</span>
+                {collapsed ? (
+                  <span className="sr-only">{item.label}</span>
+                ) : (
+                  <span>{item.label}</span>
+                )}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* 收合/展開按鈕 */}
+      <div className="border-t border-gray-700 p-2">
+        <button
+          onClick={onToggle}
+          aria-label={collapsed ? '展開側邊欄' : '收合側邊欄'}
+          className="flex w-full items-center justify-center rounded-lg px-3 py-2 text-sm text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+        >
+          {collapsed ? '→' : '←'}
+        </button>
+      </div>
+    </nav>
+  );
+}

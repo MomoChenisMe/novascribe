@@ -5,11 +5,13 @@ NovaScribe 是一個基於 Next.js App Router 的個人部落格系統。基礎�
 此 change 在現有基礎上，建構完整的 SEO 基礎設施和數據分析能力，讓每篇文章都能被搜尋引擎正確索引，並提供流量與搜尋效能的數據回饋。
 
 **現狀**：
+
 - 專案已有 User model、認證系統、後台佈局
 - 內容管理已規劃 posts、categories、tags 等資料表
 - 尚無任何 SEO meta 管理、sitemap、structured data、analytics 整合
 
 **限制條件**：
+
 - 個人部落格，單一管理者（Momo）
 - SEO 設定需與文章編輯流程無縫整合
 - GA4 和 Search Console 數據透過 Google API 取得，需處理 API 配額與認證
@@ -18,6 +20,7 @@ NovaScribe 是一個基於 Next.js App Router 的個人部落格系統。基礎�
 ## Goals / Non-Goals
 
 **Goals：**
+
 - 為每篇文章提供完整的 SEO meta 管理能力（meta title、description、OG tags、canonical URL）
 - 自動生成符合 Google 規範的 sitemap.xml 和 robots.txt
 - 自動注入 JSON-LD structured data（Article、BreadcrumbList、WebSite）
@@ -27,6 +30,7 @@ NovaScribe 是一個基於 Next.js App Router 的個人部落格系統。基礎�
 - 在文章編輯時提供即時 SEO 預覽和評分回饋
 
 **Non-Goals：**
+
 - 自動化 SEO 內容生成（AI 撰寫 meta description）— 屬未來功能
 - 多語系 SEO（hreflang tags）— 個人部落格暫不需要
 - 付費搜尋廣告整合（Google Ads）— 非自然搜尋範疇
@@ -61,6 +65,7 @@ model SeoMetadata {
 ```
 
 **理由**：
+
 - 獨立資料表保持 posts 資料表簡潔，SEO 欄位眾多且未來可能持續擴充
 - `onDelete: Cascade` 確保文章刪除時 SEO 資料一併清除
 - 欄位長度限制符合 Google 建議（title ≤ 60-70 字元、description ≤ 155-160 字元）
@@ -68,6 +73,7 @@ model SeoMetadata {
 - `seoScore` 快取評分結果，避免每次重算
 
 **替代方案**：
+
 - 直接在 posts 資料表新增欄位 → 欄位過多，違反單一職責原則
 - 使用 JSON 欄位儲存 → 無法對個別欄位建立索引或設定約束
 
@@ -88,11 +94,13 @@ model SitemapConfig {
 ```
 
 **理由**：
+
 - 儲存各路徑類型（文章、分類、標籤）的預設 sitemap 設定
 - 管理者可調整更新頻率和優先權
 - `path` 使用 pattern 格式（如 `/posts/*`、`/categories/*`）
 
 **替代方案**：
+
 - 使用 next-sitemap 套件 → 過度依賴第三方，自建更靈活
 - 靜態設定檔 → 無法在後台動態調整
 
@@ -111,6 +119,7 @@ model SiteSetting {
 ```
 
 **理由**：
+
 - 鍵值對設計適合儲存各類全站設定（site title、site description、GA4 measurement ID、Search Console verification code、robots.txt 內容等）
 - 不需為每個設定建立獨立欄位，擴充性極高
 - 設定項目示例：
@@ -123,6 +132,7 @@ model SiteSetting {
   - `default_og_image`：預設 OG 圖片
 
 **替代方案**：
+
 - 環境變數 → GA4 ID 等固定值可用環境變數，但管理者需要在後台可調整的設定不適合
 - 獨立的 settings model 帶明確欄位 → 每次新增設定項都需要 migration，不夠靈活
 
@@ -139,7 +149,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   return [
-    { url: `${siteUrl}`, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
+    {
+      url: `${siteUrl}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 1.0,
+    },
     ...posts.map((post) => ({
       url: `${siteUrl}/posts/${post.slug}`,
       lastModified: post.updatedAt,
@@ -151,12 +166,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 ```
 
 **理由**：
+
 - Next.js App Router 原生支援 `sitemap.ts`，會自動在 `/sitemap.xml` 路徑提供
 - 每次請求動態生成，確保包含最新發佈的文章
 - 無需額外套件或 cron job
 - 可搭配 ISR（Incremental Static Regeneration）快取以降低資料庫負載
 
 **替代方案**：
+
 - next-sitemap 套件 → 主要設計給 Pages Router，與 App Router 整合不夠原生
 - 靜態生成 + webhook 觸發重建 → 架構過於複雜
 
@@ -201,17 +218,20 @@ export function ArticleJsonLd({ post, author }: ArticleJsonLdProps) {
 ```
 
 支援的 schema 類型：
+
 - **Article**：每篇文章頁面
 - **BreadcrumbList**：麵包屑導覽
 - **WebSite**：首頁，含 SearchAction
 - **Person**：作者資訊
 
 **理由**：
+
 - React 元件方式可在 Server Component 中直接使用
 - JSON-LD 是 Google 推薦的 structured data 格式
 - 每種 schema 類型獨立元件，可組合使用
 
 **替代方案**：
+
 - next-seo 套件 → 目前對 App Router 支援有限
 - Microdata 格式 → Google 偏好 JSON-LD，且 JSON-LD 不影響 HTML 結構
 
@@ -237,7 +257,10 @@ export default function RootLayout({ children }) {
 
 ```typescript
 // src/lib/analytics.ts
-export function trackEvent(eventName: string, params?: Record<string, unknown>) {
+export function trackEvent(
+  eventName: string,
+  params?: Record<string, unknown>,
+) {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', eventName, params);
   }
@@ -245,17 +268,20 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>) 
 ```
 
 追蹤事件清單：
+
 - `page_view`（自動）
 - `article_read`：文章閱讀（含閱讀時間）
 - `scroll_depth`：捲動深度（25%、50%、75%、100%）
 - `outbound_click`：外部連結點擊
 
 **理由**：
+
 - `@next/third-parties` 是 Next.js 官方套件，最佳化了第三方 script 載入效能
 - 自訂事件透過 `gtag` 全域函式，與 GA4 原生整合
 - Client component 處理瀏覽器端事件追蹤
 
 **替代方案**：
+
 - 手動注入 `<script>` → 效能較差，且需自行處理 hydration
 - react-ga4 套件 → 額外依賴，且 @next/third-parties 已足夠
 
@@ -279,7 +305,10 @@ export async function generateMetadata() {
 // src/lib/search-console.ts
 import { google } from 'googleapis';
 
-export async function getSearchPerformance(siteUrl: string, options: SearchQueryOptions) {
+export async function getSearchPerformance(
+  siteUrl: string,
+  options: SearchQueryOptions,
+) {
   const auth = new google.auth.GoogleAuth({
     credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}'),
     scopes: ['https://www.googleapis.com/auth/webmasters.readonly'],
@@ -290,11 +319,13 @@ export async function getSearchPerformance(siteUrl: string, options: SearchQuery
 ```
 
 **理由**：
+
 - HTML meta tag 驗證最簡單，透過 Next.js metadata API 原生支援
 - Service Account 認證適合後端伺服器端 API 呼叫，不需要 OAuth 使用者授權流程
 - 搜尋效能數據快取在資料庫中（每日同步一次），避免頻繁 API 呼叫
 
 **替代方案**：
+
 - 檔案驗證（google-site-verification.html）→ 靜態檔案管理較麻煩
 - OAuth 2.0 使用者授權 → 需要管理者手動授權，不適合自動化場景
 
@@ -302,38 +333,38 @@ export async function getSearchPerformance(siteUrl: string, options: SearchQuery
 
 SEO 評分基於以下權重計算（滿分 100）：
 
-| 檢查項目 | 權重 | 說明 |
-|---------|------|------|
-| Meta Title 存在且長度適當 | 15 | 30-60 字元 |
-| Meta Description 存在且長度適當 | 15 | 120-160 字元 |
-| Focus Keyword 設定 | 10 | 已填寫焦點關鍵字 |
-| Focus Keyword 出現在標題 | 10 | 標題包含關鍵字 |
-| Focus Keyword 出現在描述 | 10 | 描述包含關鍵字 |
-| OG Image 設定 | 10 | 已設定社群分享圖片 |
-| 文章內容長度 | 10 | ≥ 300 字 |
-| 標題使用（H2/H3） | 10 | 內容有使用子標題 |
-| 內部連結 | 5 | 包含站內連結 |
-| 外部連結 | 5 | 包含外部參考連結 |
+| 檢查項目                        | 權重 | 說明               |
+| ------------------------------- | ---- | ------------------ |
+| Meta Title 存在且長度適當       | 15   | 30-60 字元         |
+| Meta Description 存在且長度適當 | 15   | 120-160 字元       |
+| Focus Keyword 設定              | 10   | 已填寫焦點關鍵字   |
+| Focus Keyword 出現在標題        | 10   | 標題包含關鍵字     |
+| Focus Keyword 出現在描述        | 10   | 描述包含關鍵字     |
+| OG Image 設定                   | 10   | 已設定社群分享圖片 |
+| 文章內容長度                    | 10   | ≥ 300 字           |
+| 標題使用（H2/H3）               | 10   | 內容有使用子標題   |
+| 內部連結                        | 5    | 包含站內連結       |
+| 外部連結                        | 5    | 包含外部參考連結   |
 
 **理由**：參考 Yoast SEO 的評分模式，簡化為適合個人部落格的檢查項目。評分結果快取在 `seo_metadata.seoScore`，在儲存 SEO 設定時重新計算。
 
 ### 10. API 端點設計
 
-| 端點 | 方法 | 說明 | 認證 |
-|------|------|------|------|
-| `/api/admin/seo/posts/[postId]` | GET | 取得文章 SEO 設定 | 需認證 |
-| `/api/admin/seo/posts/[postId]` | PUT | 更新文章 SEO 設定 | 需認證 |
-| `/api/admin/seo/score/[postId]` | GET | 計算並回傳文章 SEO 評分 | 需認證 |
-| `/api/admin/seo/settings` | GET | 取得全站 SEO 設定 | 需認證 |
-| `/api/admin/seo/settings` | PUT | 更新全站 SEO 設定 | 需認證 |
-| `/api/admin/seo/dashboard` | GET | 取得 SEO 儀表板數據 | 需認證 |
-| `/api/admin/seo/sitemap-config` | GET | 取得 sitemap 設定 | 需認證 |
-| `/api/admin/seo/sitemap-config` | PUT | 更新 sitemap 設定 | 需認證 |
-| `/api/admin/analytics/overview` | GET | 取得 GA4 流量概覽 | 需認證 |
-| `/api/admin/analytics/events` | GET | 取得自訂事件數據 | 需認證 |
-| `/api/admin/search-console/performance` | GET | 取得搜尋效能數據 | 需認證 |
-| `/sitemap.xml` | GET | 動態生成 sitemap | 公開 |
-| `/robots.txt` | GET | 動態生成 robots.txt | 公開 |
+| 端點                                    | 方法 | 說明                    | 認證   |
+| --------------------------------------- | ---- | ----------------------- | ------ |
+| `/api/admin/seo/posts/[postId]`         | GET  | 取得文章 SEO 設定       | 需認證 |
+| `/api/admin/seo/posts/[postId]`         | PUT  | 更新文章 SEO 設定       | 需認證 |
+| `/api/admin/seo/score/[postId]`         | GET  | 計算並回傳文章 SEO 評分 | 需認證 |
+| `/api/admin/seo/settings`               | GET  | 取得全站 SEO 設定       | 需認證 |
+| `/api/admin/seo/settings`               | PUT  | 更新全站 SEO 設定       | 需認證 |
+| `/api/admin/seo/dashboard`              | GET  | 取得 SEO 儀表板數據     | 需認證 |
+| `/api/admin/seo/sitemap-config`         | GET  | 取得 sitemap 設定       | 需認證 |
+| `/api/admin/seo/sitemap-config`         | PUT  | 更新 sitemap 設定       | 需認證 |
+| `/api/admin/analytics/overview`         | GET  | 取得 GA4 流量概覽       | 需認證 |
+| `/api/admin/analytics/events`           | GET  | 取得自訂事件數據        | 需認證 |
+| `/api/admin/search-console/performance` | GET  | 取得搜尋效能數據        | 需認證 |
+| `/sitemap.xml`                          | GET  | 動態生成 sitemap        | 公開   |
+| `/robots.txt`                           | GET  | 動態生成 robots.txt     | 公開   |
 
 ### 11. 前端元件架構
 
