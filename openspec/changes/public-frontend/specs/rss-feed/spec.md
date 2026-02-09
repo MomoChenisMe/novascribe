@@ -49,12 +49,17 @@
 
 ### Requirement: 全文輸出
 
-系統 SHALL 在所有 Feed 格式中提供文章的全文 HTML 內容，而非僅摘要。
+系統 SHALL 在所有 Feed 格式中提供文章的全文 HTML 內容，而非僅摘要。Feed 的 content 欄位 MUST 使用與文章詳情頁相同的 Markdown 渲染 pipeline 生成（unified + Shiki），確保程式碼高亮和格式一致性。
 
 #### Scenario: Feed 包含全文
 
 - **WHEN** 系統生成 Feed 條目
-- **THEN** 每篇文章的 content 欄位包含完整的 HTML 渲染內容，description 欄位包含摘要
+- **THEN** 每篇文章的 content 欄位包含完整的 HTML 渲染內容（經 Markdown pipeline 處理），description 欄位包含摘要
+
+#### Scenario: Feed 內容渲染品質
+
+- **WHEN** 文章包含程式碼區塊、表格、GFM 語法
+- **THEN** Feed 的 content 欄位正確渲染這些元素，與文章頁顯示效果一致（Shiki 高亮、GFM 支援）
 
 ### Requirement: Auto-discovery 標籤
 

@@ -36,17 +36,22 @@
 
 ### Requirement: 搜尋結果高亮
 
-系統 SHALL 在搜尋結果中對匹配的關鍵字進行高亮標記，幫助使用者快速定位匹配內容。
+系統 SHALL 在搜尋結果中對匹配的關鍵字進行高亮標記，幫助使用者快速定位匹配內容。API 回傳的 title 和 excerpt 欄位 SHALL 包含 `<mark>` 標籤包裹的匹配關鍵字，前台頁面直接渲染這些標籤。
 
 #### Scenario: 標題關鍵字高亮
 
 - **WHEN** 搜尋結果的文章標題包含搜尋關鍵字
-- **THEN** 回傳的結果中，匹配的關鍵字以 `<mark>` 標籤包裹或提供高亮位置資訊
+- **THEN** 回傳的 title 欄位中，匹配的關鍵字以 `<mark>` 標籤包裹（如 `"使用 <mark>Next.js</mark> 建立部落格"`）
 
 #### Scenario: 摘要關鍵字高亮
 
 - **WHEN** 搜尋結果的文章摘要包含搜尋關鍵字
-- **THEN** 回傳的摘要文字中，匹配的關鍵字被標記高亮
+- **THEN** 回傳的 excerpt 欄位中，匹配的關鍵字以 `<mark>` 標籤包裹
+
+#### Scenario: 前台直接渲染高亮標籤
+
+- **WHEN** 前台頁面接收到包含 `<mark>` 標籤的搜尋結果
+- **THEN** 使用 `dangerouslySetInnerHTML` 或等效方式正確渲染 `<mark>` 標籤，顯示高亮效果
 
 ### Requirement: Rate Limiting
 
