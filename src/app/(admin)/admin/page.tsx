@@ -10,6 +10,7 @@
 
 import { useSession } from 'next-auth/react';
 import { version as reactVersion } from 'react';
+import { version as nextVersion } from 'next/package.json';
 
 /** 系統資訊項目 */
 interface SystemInfo {
@@ -20,7 +21,7 @@ interface SystemInfo {
 /** 取得系統資訊 */
 function getSystemInfo(): SystemInfo[] {
   return [
-    { label: 'Next.js', value: '16.1.6' },
+    { label: 'Next.js', value: nextVersion },
     { label: 'React', value: reactVersion },
     { label: 'Node.js', value: typeof process !== 'undefined' ? process.version : 'N/A' },
     { label: 'TypeScript', value: '5.x' },

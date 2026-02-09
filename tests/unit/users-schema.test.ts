@@ -38,18 +38,18 @@ describe('Users Schema 結構驗證', () => {
       expect(schemaContent).toMatch(/name\s+String\?/);
     });
 
-    it('應包含 passwordHash 欄位（String）', () => {
-      expect(schemaContent).toMatch(/passwordHash\s+String/);
+    it('應包含 passwordHash 欄位（String, @map("password_hash")）', () => {
+      expect(schemaContent).toMatch(/passwordHash\s+String\s+@map\("password_hash"\)/);
     });
 
-    it('應包含 createdAt 欄位（DateTime, @default(now())）', () => {
+    it('應包含 createdAt 欄位（DateTime, @default(now()), @map("created_at")）', () => {
       expect(schemaContent).toMatch(
-        /createdAt\s+DateTime\s+@default\(now\(\)\)/
+        /createdAt\s+DateTime\s+@default\(now\(\)\)\s+@map\("created_at"\)/
       );
     });
 
-    it('應包含 updatedAt 欄位（DateTime, @updatedAt）', () => {
-      expect(schemaContent).toMatch(/updatedAt\s+DateTime\s+@updatedAt/);
+    it('應包含 updatedAt 欄位（DateTime, @updatedAt, @map("updated_at")）', () => {
+      expect(schemaContent).toMatch(/updatedAt\s+DateTime\s+@updatedAt\s+@map\("updated_at"\)/);
     });
   });
 
