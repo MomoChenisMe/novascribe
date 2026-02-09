@@ -47,3 +47,6 @@ next-env.d.ts
 /playwright/.cache/
 
 /src/generated/prisma
+
+# uploaded media
+/public/uploads/
