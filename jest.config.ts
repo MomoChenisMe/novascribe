@@ -17,6 +17,9 @@ const config: Config = {
     '<rootDir>/.next/',
     '<rootDir>/tests/e2e/',
   ],
+  transformIgnorePatterns: [
+    'node_modules/(?!(unified|remark-parse|remark-gfm|remark-rehype|rehype-stringify|rehype-slug|@shikijs)/)',
+  ],
   coverageDirectory: 'coverage',
   coverageThreshold: {
     global: {

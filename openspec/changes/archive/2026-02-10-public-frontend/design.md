@@ -348,6 +348,40 @@ export async function generateMetadata({ params }): Promise<Metadata> {
 - `AnalyticsProvider` — GA4 追蹤
 - RSS Auto-discovery `<link>` 標籤
 
+### 11. ISR 快取管理策略
+
+為確保後台文章更新後前台能即時反映，需在後台 CRUD 操作後主動清除 ISR 快取：
+
+```typescript
+// src/lib/services/post.service.ts（後台 service）
+import { revalidatePath } from 'next/cache'
+
+export async function createPost(data: CreatePostInput) {
+  const post = await prisma.post.create({ data })
+  
+  // 清除首頁快取
+  revalidatePath('/')
+  // 清除文章頁快取
+  revalidatePath(`/posts/${post.slug}`)
+  // 清除分類頁快取（如果有分類）
+  if (post.categoryId) {
+    const category = await prisma.category.findUnique({ where: { id: post.categoryId } })
+    if (category) revalidatePath(`/categories/${category.slug}`)
+  }
+  
+  return post
+}
+```
+
+需清除快取的操作：
+- `createPost` → 清除首頁、分類頁
+- `updatePost` → 清除文章頁、首頁、舊/新分類頁
+- `deletePost` → 清除首頁、分類頁、文章頁（返回 404）
+- `updatePostStatus` → 清除文章頁、首頁、分類頁（PUBLISHED ↔ 其他狀態切換）
+
+**替代方案**：使用 webhook 或 cron 定期清除。
+**選擇理由**：`revalidatePath()` 精準清除特定路徑，即時性最佳。
+
 ## Risks / Trade-offs
 
 ### 風險

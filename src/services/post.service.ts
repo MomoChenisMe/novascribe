@@ -14,6 +14,7 @@
 
 import { prisma } from '@/lib/prisma';
 import type { Post, PostStatus } from '@/generated/prisma/client';
+import { revalidatePath } from 'next/cache';
 
 export interface CreatePostInput {
   title: string;
@@ -129,6 +130,22 @@ export async function createPost(input: CreatePostInput): Promise<Post> {
     return created;
   });
 
+  // 清除 ISR 快取（只有 PUBLISHED 狀態才清除）
+  if (status === 'PUBLISHED') {
+    revalidatePath('/');
+    revalidatePath(`/posts/${slug}`);
+    
+    // 如果有分類，清除分類頁快取
+    if (categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+      });
+      if (category) {
+        revalidatePath(`/categories/${category.slug}`);
+      }
+    }
+  }
+
   return post;
 }
 
@@ -215,6 +232,41 @@ export async function updatePost(
     return updated;
   });
 
+  // 清除 ISR 快取（只有 PUBLISHED 狀態才清除）
+  if (existing.status === 'PUBLISHED') {
+    revalidatePath('/');
+    
+    // 清除舊 slug 的文章頁
+    revalidatePath(`/posts/${existing.slug}`);
+    
+    // 如果 slug 有變更，清除新 slug 的文章頁
+    if (input.slug !== undefined && input.slug !== existing.slug) {
+      revalidatePath(`/posts/${input.slug}`);
+    }
+    
+    // 清除舊分類頁
+    if (existing.categoryId) {
+      const oldCategory = await prisma.category.findUnique({
+        where: { id: existing.categoryId },
+      });
+      if (oldCategory) {
+        revalidatePath(`/categories/${oldCategory.slug}`);
+      }
+    }
+    
+    // 清除新分類頁（如果有變更分類）
+    if (input.categoryId !== undefined && input.categoryId !== existing.categoryId) {
+      if (input.categoryId) {
+        const newCategory = await prisma.category.findUnique({
+          where: { id: input.categoryId },
+        });
+        if (newCategory) {
+          revalidatePath(`/categories/${newCategory.slug}`);
+        }
+      }
+    }
+  }
+
   return post;
 }
 
@@ -225,6 +277,9 @@ export async function updatePost(
 export async function deletePost(id: string): Promise<void> {
   const existing = await prisma.post.findUnique({
     where: { id },
+    include: {
+      category: true,
+    },
   });
 
   if (!existing) {
@@ -234,6 +289,17 @@ export async function deletePost(id: string): Promise<void> {
   await prisma.post.delete({
     where: { id },
   });
+
+  // 清除 ISR 快取（只有 PUBLISHED 狀態才清除）
+  if (existing.status === 'PUBLISHED') {
+    revalidatePath('/');
+    revalidatePath(`/posts/${existing.slug}`);
+    
+    // 清除分類頁快取
+    if (existing.category) {
+      revalidatePath(`/categories/${existing.category.slug}`);
+    }
+  }
 }
 
 /**
@@ -352,6 +418,9 @@ export async function updatePostStatus(
 ): Promise<Post> {
   const existing = await prisma.post.findUnique({
     where: { id },
+    include: {
+      category: true,
+    },
   });
 
   if (!existing) {
@@ -392,10 +461,31 @@ export async function updatePostStatus(
     updateData.publishedAt = null;
   }
 
-  return prisma.post.update({
+  const post = await prisma.post.update({
     where: { id },
     data: updateData,
   });
+
+  // 清除 ISR 快取（狀態變更且涉及 PUBLISHED 時）
+  const oldStatus = existing.status;
+  const newStatus = status;
+  
+  // 從 DRAFT → PUBLISHED 或 PUBLISHED → 其他狀態時清除快取
+  if (
+    (oldStatus === 'DRAFT' && newStatus === 'PUBLISHED') ||
+    (oldStatus === 'PUBLISHED' && newStatus !== 'PUBLISHED') ||
+    (oldStatus === 'PUBLISHED' && newStatus === 'PUBLISHED')
+  ) {
+    revalidatePath('/');
+    revalidatePath(`/posts/${existing.slug}`);
+    
+    // 清除分類頁快取
+    if (existing.category) {
+      revalidatePath(`/categories/${existing.category.slug}`);
+    }
+  }
+
+  return post;
 }
 
 /**

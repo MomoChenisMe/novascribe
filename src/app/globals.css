@@ -1,45 +1,110 @@
 @import 'tailwindcss';
 
+/* Light Mode 主題變數 */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --primary: #2563eb;
-  --primary-light: #3b82f6;
-  --primary-dark: #1d4ed8;
-  --secondary: #64748b;
-  --accent: #f59e0b;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --error: #ef4444;
+  --color-bg: #ffffff;
+  --color-text: #1a1a1a;
+  --color-primary: #3b82f6;
+  --color-secondary: #6b7280;
+  --color-accent: #f59e0b;
+  --color-card: #ffffff;
+  --color-border: #e5e7eb;
+  --color-code-bg: #f8f9fa;
+  --color-muted: #f3f4f6;
+  --color-hover: #f9fafb;
 }
 
+/* Dark Mode 主題變數 */
+[data-theme='dark'] {
+  --color-bg: #0f172a;
+  --color-text: #e2e8f0;
+  --color-primary: #60a5fa;
+  --color-secondary: #94a3b8;
+  --color-accent: #fbbf24;
+  --color-card: #1e293b;
+  --color-border: #334155;
+  --color-code-bg: #1e293b;
+  --color-muted: #334155;
+  --color-hover: #293548;
+}
+
+/* Tailwind @theme 整合 */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-light: var(--primary-light);
-  --color-primary-dark: var(--primary-dark);
-  --color-secondary: var(--secondary);
-  --color-accent: var(--accent);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-error: var(--error);
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+  --color-card: var(--color-card);
+  --color-border: var(--color-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --primary: #3b82f6;
-    --primary-light: #60a5fa;
-    --primary-dark: #2563eb;
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* 中文排版最佳化 */
+.prose-cjk {
+  font-feature-settings: 'palt'; /* OpenType 比例標點 */
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+.prose-cjk p {
+  margin-bottom: 1.5em;
+}
+
+.prose-cjk h1,
+.prose-cjk h2,
+.prose-cjk h3,
+.prose-cjk h4,
+.prose-cjk h5,
+.prose-cjk h6 {
+  margin-top: 2em;
+  margin-bottom: 0.8em;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* 響應式設計基礎 */
+.container-responsive {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .container-responsive {
+    padding: 0 2rem;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.hidden-mobile {
+  display: none;
 }
+
+@media (min-width: 768px) {
+  .hidden-mobile {
+    display: block;
+  }
+}
+
+.visible-mobile {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .visible-mobile {
+    display: none;
+  }
+}
+
+
+

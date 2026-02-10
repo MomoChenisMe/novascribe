@@ -193,7 +193,37 @@ src/components/public/comment/
 2. 頂層評論分頁載入（預設 10 則），replies 隨頂層評論一起載入
 3. 點擊「回覆」展開 inline `CommentForm`
 4. 提交後表單清空，顯示「評論已送出，待審核後顯示」提示
-5. Markdown 預覽使用輕量 client-side 解析（`marked` 或類似輕量方案）
+5. Markdown 預覽使用輕量 client-side 解析器
+
+**Client-side Markdown 解析器選擇**：
+
+使用 `unified` 生態系（與前台文章渲染統一）：
+```typescript
+// src/lib/comment-markdown-client.ts（client-side bundle）
+import { unified } from 'unified'
+import remarkParse from 'remark-parse'
+import remarkRehype from 'remark-rehype'
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
+import rehypeStringify from 'rehype-stringify'
+
+export async function parseCommentMarkdown(markdown: string): Promise<string> {
+  const result = await unified()
+    .use(remarkParse)
+    .use(remarkRehype)
+    .use(rehypeSanitize, {
+      ...defaultSchema,
+      tagNames: ['p', 'strong', 'em', 'code', 'pre', 'a'],
+      attributes: { a: ['href'] },
+    })
+    .use(rehypeStringify)
+    .process(markdown)
+  
+  return String(result)
+}
+```
+
+**替代方案**：`marked`（更輕量，5KB vs unified 的 ~20KB）。
+**選擇理由**：與前台文章渲染使用同一套 unified 生態系，確保 Markdown 解析行為一致。雖然 bundle 稍大，但 tree-shaking 後影響有限，且可共享前台已載入的 unified 套件。
 
 Markdown 支援範圍（評論用，限制格式）：
 - 粗體（`**bold**`）、斜體（`*italic*`）

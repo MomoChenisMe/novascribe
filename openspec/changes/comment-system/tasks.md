@@ -1,6 +1,6 @@
 ## 1. 資料模型與套件設定
 
-- [ ] 1.1 安裝評論系統相關套件（nodemailer、@types/nodemailer）
+- [ ] 1.1 安裝評論系統相關套件（nodemailer、@types/nodemailer、marked、rehype-sanitize、unified、remark-parse、remark-rehype、rehype-stringify）
 - [ ] 1.2 新增 CommentStatus enum 和 Comment model 至 Prisma schema，更新 Post model 新增 comments 關聯
 - [ ] 1.3 產生 Prisma migration 並更新 Prisma Client
 
