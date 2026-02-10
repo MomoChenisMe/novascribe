@@ -1,0 +1,180 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import CommentSection from '../CommentSection';
+
+// Mock fetch globally
+global.fetch = jest.fn();
+
+// Mock CommentList
+jest.mock('../CommentList', () => {
+  return function MockCommentList({ comments }: { comments: any[] }) {
+    return <div data-testid="comment-list">CommentList with {comments.length} comments</div>;
+  };
+});
+
+// Mock CommentForm (假設未來會實作)
+jest.mock('../CommentForm', () => {
+  return function MockCommentForm() {
+    return <div data-testid="comment-form">CommentForm</div>;
+  };
+});
+
+const mockComments = [
+  {
+    id: '1',
+    content: '這是第一則評論',
+    author: '張三',
+    createdAt: '2024-01-15T10:00:00Z',
+    replies: [],
+  },
+  {
+    id: '2',
+    content: '這是第二則評論',
+    author: '李四',
+    createdAt: '2024-01-16T10:00:00Z',
+    replies: [
+      {
+        id: '3',
+        content: '這是回覆',
+        author: '王五',
+        createdAt: '2024-01-16T11:00:00Z',
+        replies: [],
+      },
+    ],
+  },
+];
+
+describe('CommentSection', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('應該顯示 loading 狀態', () => {
+    (global.fetch as jest.Mock).mockImplementation(
+      () => new Promise(() => {}) // 永遠不 resolve
+    );
+
+    render(<CommentSection postId="post-123" />);
+    expect(screen.getByText(/載入中|Loading/i)).toBeInTheDocument();
+  });
+
+  it('應該從 API 載入評論', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockComments,
+    });
+
+    render(<CommentSection postId="post-123" />);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/posts/post-123/comments');
+    });
+  });
+
+  it('應該顯示評論數標題', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockComments,
+    });
+
+    render(<CommentSection postId="post-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/2 則評論/i)).toBeInTheDocument();
+    });
+  });
+
+  it('應該顯示單數評論數標題', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => [mockComments[0]],
+    });
+
+    render(<CommentSection postId="post-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/1 則評論/i)).toBeInTheDocument();
+    });
+  });
+
+  it('載入成功後應該渲染 CommentList', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockComments,
+    });
+
+    render(<CommentSection postId="post-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('comment-list')).toBeInTheDocument();
+    });
+  });
+
+  it('載入成功後應該渲染 CommentForm', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockComments,
+    });
+
+    render(<CommentSection postId="post-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('comment-form')).toBeInTheDocument();
+    });
+  });
+
+  it('應該顯示錯誤狀態', async () => {
+    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+
+    render(<CommentSection postId="post-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/載入評論失敗|錯誤/i)).toBeInTheDocument();
+    });
+  });
+
+  it('API 回傳錯誤時應該顯示錯誤狀態', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+    });
+
+    render(<CommentSection postId="post-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/載入評論失敗|錯誤/i)).toBeInTheDocument();
+    });
+  });
+
+  it('沒有評論時應該顯示 0 則評論', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    });
+
+    render(<CommentSection postId="post-123" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/0 則評論/i)).toBeInTheDocument();
+    });
+  });
+
+  it('postId 改變時應該重新載入評論', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => mockComments,
+    });
+
+    const { rerender } = render(<CommentSection postId="post-123" />);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/posts/post-123/comments');
+    });
+
+    rerender(<CommentSection postId="post-456" />);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/posts/post-456/comments');
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+});

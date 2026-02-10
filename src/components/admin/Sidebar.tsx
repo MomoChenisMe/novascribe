@@ -24,6 +24,8 @@ interface SidebarProps {
   collapsed: boolean;
   /** 切換收合/展開 */
   onToggle: () => void;
+  /** 待審核評論數 */
+  pendingCount?: number;
 }
 
 /** SVG icon 元件（簡化版，使用 emoji 作為替代） */
@@ -34,6 +36,7 @@ function NavIcon({ label }: { label: string }) {
     分類: '📁',
     標籤: '🏷️',
     媒體: '🖼️',
+    評論管理: '💬',
     SEO: '🔍',
     設定: '⚙️',
   };
@@ -47,6 +50,7 @@ const navItems: NavItem[] = [
   { label: '分類', href: '/admin/categories', icon: <NavIcon label="分類" /> },
   { label: '標籤', href: '/admin/tags', icon: <NavIcon label="標籤" /> },
   { label: '媒體', href: '/admin/media', icon: <NavIcon label="媒體" /> },
+  { label: '評論管理', href: '/admin/comments', icon: <NavIcon label="評論管理" /> },
   { label: 'SEO', href: '/admin/seo', icon: <NavIcon label="SEO" /> },
   { label: '設定', href: '/admin/settings', icon: <NavIcon label="設定" /> },
 ];
@@ -63,8 +67,13 @@ function isActive(pathname: string, href: string): boolean {
   return pathname.startsWith(href);
 }
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle, pendingCount = 0 }: SidebarProps) {
   const pathname = usePathname();
+
+  /** 格式化 badge 數字（>99 顯示為 99+） */
+  const formatBadgeCount = (count: number) => {
+    return count > 99 ? '99+' : count.toString();
+  };
 
   return (
     <nav
@@ -77,6 +86,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <ul className="flex-1 space-y-1 px-2 py-4">
         {navItems.map((item) => {
           const active = isActive(pathname, item.href);
+          const showBadge = item.label === '評論管理' && pendingCount > 0;
+
           return (
             <li key={item.href}>
               <Link
@@ -90,9 +101,23 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               >
                 <span className="flex-shrink-0 text-lg">{item.icon}</span>
                 {collapsed ? (
-                  <span className="sr-only">{item.label}</span>
+                  <>
+                    <span className="sr-only">{item.label}</span>
+                    {showBadge && (
+                      <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                        {formatBadgeCount(pendingCount)}
+                      </span>
+                    )}
+                  </>
                 ) : (
-                  <span>{item.label}</span>
+                  <>
+                    <span className="flex-1">{item.label}</span>
+                    {showBadge && (
+                      <span className="ml-auto flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
+                        {formatBadgeCount(pendingCount)}
+                      </span>
+                    )}
+                  </>
                 )}
               </Link>
             </li>

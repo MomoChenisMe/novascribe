@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/admin/Header';
 import { Sidebar } from '@/components/admin/Sidebar';
+import { useCommentStats } from '@/hooks/useCommentStats';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -19,6 +20,7 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { stats } = useCommentStats();
 
   function handleToggle() {
     setCollapsed((prev) => !prev);
@@ -32,6 +34,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     setMobileOpen(false);
   }
 
+  const pendingCount = stats?.pending || 0;
+
   return (
     <div className="flex h-screen flex-col">
       {/* 頂部列 */}
@@ -40,7 +44,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <div className="flex flex-1 overflow-hidden">
         {/* 桌面/平板側邊欄 */}
         <aside className="hidden md:block" data-testid="sidebar-desktop">
-          <Sidebar collapsed={collapsed} onToggle={handleToggle} />
+          <Sidebar collapsed={collapsed} onToggle={handleToggle} pendingCount={pendingCount} />
         </aside>
 
         {/* 手機版側邊欄 overlay */}
@@ -55,7 +59,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             />
             {/* 抽屜式側邊欄 */}
             <aside className="fixed inset-y-0 left-0 z-50 md:hidden">
-              <Sidebar collapsed={false} onToggle={handleMobileClose} />
+              <Sidebar collapsed={false} onToggle={handleMobileClose} pendingCount={pendingCount} />
             </aside>
           </>
         )}
