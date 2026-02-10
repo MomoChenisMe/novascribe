@@ -16,10 +16,12 @@ const config: Config = {
     '<rootDir>/node_modules/',
     '<rootDir>/.next/',
     '<rootDir>/tests/e2e/',
+    '<rootDir>/src/lib/__tests__/.*\\.verify\\.ts$',
   ],
   transformIgnorePatterns: [
-    'node_modules/(?!(unified|remark-parse|remark-gfm|remark-rehype|rehype-stringify|rehype-slug|@shikijs)/)',
+    'node_modules/(?!(@?unified|@?unist.*|@?vfile.*|@?remark.*|@?rehype.*|@?mdast.*|@?hast.*|@?micromark.*|decode-named-character-reference|character-entities|@shikijs)/)',
   ],
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
   coverageDirectory: 'coverage',
   coverageThreshold: {
     global: {

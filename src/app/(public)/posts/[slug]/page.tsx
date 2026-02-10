@@ -8,6 +8,7 @@ import ArticleToc from '@/components/public/article/ArticleToc'
 import RelatedPosts from '@/components/public/article/RelatedPosts'
 import ShareButtons from '@/components/public/article/ShareButtons'
 import Breadcrumb from '@/components/public/common/Breadcrumb'
+import CommentSection from '@/components/public/comment/CommentSection'
 
 export const revalidate = 60 // 每 60 秒重新驗證
 
@@ -98,6 +99,11 @@ export default async function PostPage({ params }: PostPageProps) {
               url={`https://novascribe.dev/posts/${post.slug}`}
               title={post.title}
             />
+          </div>
+
+          {/* Comment Section */}
+          <div className="mt-12">
+            <CommentSection postId={post.id} />
           </div>
 
           {/* Related Posts */}

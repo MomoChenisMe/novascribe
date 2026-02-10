@@ -10,6 +10,7 @@ interface ArticleCardProps {
     featuredImage: string | null;
     publishedAt: Date;
     readingTime: number;
+    commentCount?: number;
     category: {
       id: string;
       name: string;
@@ -81,6 +82,14 @@ export default function ArticleCard({ article }: ArticleCardProps) {
           </time>
           <span>·</span>
           <span>{article.readingTime} 分鐘閱讀</span>
+          {article.commentCount !== undefined && article.commentCount > 0 && (
+            <>
+              <span>·</span>
+              <span data-testid="comment-count">
+                💬 {article.commentCount} 則評論
+              </span>
+            </>
+          )}
         </div>
 
         {/* 標籤 */}

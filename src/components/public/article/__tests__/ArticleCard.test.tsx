@@ -25,6 +25,7 @@ const mockArticle = {
     { tag: { id: 'tag1', name: 'React', slug: 'react' } },
     { tag: { id: 'tag2', name: 'JavaScript', slug: 'javascript' } },
   ],
+  commentCount: 5,
 };
 
 describe('ArticleCard', () => {
@@ -101,5 +102,46 @@ describe('ArticleCard', () => {
     const articleWithoutCategory = { ...mockArticle, category: null };
     render(<ArticleCard article={articleWithoutCategory} />);
     expect(screen.queryByText('前端開發')).toBeNull();
+  });
+
+  // 評論數測試
+  describe('評論數顯示', () => {
+    it('應該顯示評論數', () => {
+      render(<ArticleCard article={mockArticle} />);
+      // 尋找包含評論數的元素（可能是 "5" 或 "5 則評論" 等）
+      const commentElement = screen.getByTestId('comment-count');
+      expect(commentElement).toBeInTheDocument();
+      expect(commentElement).toHaveTextContent('5');
+    });
+
+    it('0 則評論時不應該顯示評論數', () => {
+      const articleWithZeroComments = { ...mockArticle, commentCount: 0 };
+      render(<ArticleCard article={articleWithZeroComments} />);
+      expect(screen.queryByTestId('comment-count')).not.toBeInTheDocument();
+    });
+
+    it('未提供 commentCount 時不應該顯示評論數', () => {
+      const articleWithoutCommentCount = { ...mockArticle, commentCount: undefined };
+      render(<ArticleCard article={articleWithoutCommentCount} />);
+      expect(screen.queryByTestId('comment-count')).not.toBeInTheDocument();
+    });
+
+    it('評論數應該顯示為數字格式', () => {
+      const articleWithManyComments = { ...mockArticle, commentCount: 123 };
+      render(<ArticleCard article={articleWithManyComments} />);
+      const commentElement = screen.getByTestId('comment-count');
+      expect(commentElement).toHaveTextContent('123');
+    });
+
+    it('評論數應該有適當的圖示或標籤', () => {
+      render(<ArticleCard article={mockArticle} />);
+      const commentElement = screen.getByTestId('comment-count');
+      // 檢查是否包含 "評論" 或 emoji 💬
+      expect(
+        commentElement.textContent?.includes('評論') ||
+        commentElement.textContent?.includes('💬') ||
+        commentElement.querySelector('svg') // 可能使用 icon component
+      ).toBeTruthy();
+    });
   });
 });
