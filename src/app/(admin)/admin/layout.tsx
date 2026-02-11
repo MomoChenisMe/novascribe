@@ -3,9 +3,10 @@
 /**
  * @file 後台佈局元件
  * @description 後台管理三區域佈局：頂部列、側邊欄、主內容區。
- *   - 桌面（lg+, ≥1024px）：固定側邊欄
+ *   - 桌面（lg+, ≥1024px）：固定側邊欄 (240px 寬)
  *   - 平板（md, 768-1023px）：收合的側邊欄（只顯示 icon）
  *   - 手機（< 768px）：漢堡選單觸發抽屜式側邊欄
+ *   - Modern Rose Design System 配色
  */
 
 import { useState } from 'react';
@@ -64,8 +65,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </>
         )}
 
-        {/* 主內容區 */}
-        <main className="flex-1 overflow-auto bg-gray-50 p-6">
+        {/* 主內容區 - Modern Rose 風格 */}
+        <main className="flex-1 overflow-auto bg-[var(--color-bg-main)] p-8">
           {children}
         </main>
       </div>

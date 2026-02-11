@@ -5,7 +5,7 @@ import { getPostBySlug, getRelatedPosts } from '@/lib/services/public-post.servi
 import { renderMarkdown, extractToc } from '@/lib/markdown'
 import ArticleHeader from '@/components/public/article/ArticleHeader'
 import ArticleContent from '@/components/public/article/ArticleContent'
-import ArticleToc from '@/components/public/article/ArticleToc'
+import TOC from '@/components/public/TOC'
 import RelatedPosts from '@/components/public/article/RelatedPosts'
 import ShareButtons from '@/components/public/article/ShareButtons'
 import Breadcrumb from '@/components/public/common/Breadcrumb'
@@ -64,7 +64,7 @@ export default async function PostPage({ params }: PageProps<'/posts/[slug]'>) {
 
   // 渲染 Markdown
   const html = await renderMarkdown(post.content)
-  const toc = extractToc(post.content)
+  const toc = await extractToc(post.content)
 
   // 載入相關文章
   const relatedPosts = await getRelatedPosts(post.id, 3)
@@ -88,7 +88,7 @@ export default async function PostPage({ params }: PageProps<'/posts/[slug]'>) {
           <ArticleHeader article={post} />
 
           {/* Article Content */}
-          <div className="mt-8">
+          <div className="mt-8 max-w-[680px] mx-auto">
             <ArticleContent html={html} />
           </div>
 
@@ -116,9 +116,7 @@ export default async function PostPage({ params }: PageProps<'/posts/[slug]'>) {
         {/* Sidebar: Table of Contents */}
         {toc.length > 0 && (
           <aside className="lg:col-span-1">
-            <div className="sticky top-8">
-              <ArticleToc toc={toc} />
-            </div>
+            <TOC headings={toc} />
           </aside>
         )}
       </div>

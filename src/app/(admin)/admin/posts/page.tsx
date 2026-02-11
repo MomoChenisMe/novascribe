@@ -9,13 +9,14 @@
  *   - 排序：發佈時間/更新時間
  *   - 分頁：每頁 10 筆
  *   - 批次操作：勾選多筆 → 批次刪除/發佈/下架
- *   - 新增按鈕 → /admin/posts/new
- *   - 編輯按鈕 → /admin/posts/[id]/edit
- *   - 版本按鈕 → /admin/posts/[id]/versions
+ *   - Modern Rose Design System 配色
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Table, { TableColumn } from '@/components/admin/Table';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 
 /** 分類 */
 interface Category {
@@ -56,10 +57,10 @@ const STATUS_LABELS: Record<string, string> = {
 
 /** 狀態顏色映射 */
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-800',
-  PUBLISHED: 'bg-green-100 text-green-800',
-  SCHEDULED: 'bg-blue-100 text-blue-800',
-  ARCHIVED: 'bg-yellow-100 text-yellow-800',
+  DRAFT: 'bg-stone-100 text-stone-800',
+  PUBLISHED: 'bg-emerald-100 text-emerald-800',
+  SCHEDULED: 'bg-sky-100 text-sky-800',
+  ARCHIVED: 'bg-amber-100 text-amber-800',
 };
 
 /** 格式化日期 */
@@ -240,20 +241,47 @@ export default function PostsPage() {
     archive: '下架',
   };
 
-  // 載入中
-  if (loading && posts.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500">載入中...</p>
-      </div>
-    );
-  }
+  // 準備表格資料
+  const tableColumns: TableColumn[] = [
+    { key: 'checkbox', label: '', width: '48px' },
+    { key: 'title', label: '標題' },
+    { key: 'status', label: '狀態', width: '120px' },
+    { key: 'category', label: '分類', width: '120px' },
+    { key: 'publishedAt', label: '發佈時間', width: '180px' },
+    { key: 'updatedAt', label: '更新時間', width: '180px' },
+  ];
 
-  // 錯誤
+  const tableData = posts.map((post) => ({
+    id: post.id,
+    checkbox: (
+      <input
+        type="checkbox"
+        aria-label={`選取 ${post.title}`}
+        checked={selectedIds.has(post.id)}
+        onChange={() => handleSelectOne(post.id)}
+        className="rounded"
+      />
+    ),
+    title: <span className="font-medium">{post.title}</span>,
+    status: (
+      <span
+        className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${
+          STATUS_COLORS[post.status] || 'bg-stone-100 text-stone-800'
+        }`}
+      >
+        {STATUS_LABELS[post.status] || post.status}
+      </span>
+    ),
+    category: <span className="text-[var(--color-text-secondary)]">{post.category?.name || '-'}</span>,
+    publishedAt: <span className="text-[var(--color-text-secondary)]">{formatDate(post.publishedAt)}</span>,
+    updatedAt: <span className="text-[var(--color-text-secondary)]">{formatDate(post.updatedAt)}</span>,
+  }));
+
+  // 錯誤狀態
   if (error) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-red-500">{error}</p>
+        <p className="text-[var(--color-error)]">{error}</p>
       </div>
     );
   }
@@ -262,13 +290,10 @@ export default function PostsPage() {
     <div className="space-y-6">
       {/* 標題與新增按鈕 */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">文章管理</h1>
-        <button
-          onClick={() => router.push('/admin/posts/new')}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
+        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">文章管理</h1>
+        <Button variant="primary" onClick={() => router.push('/admin/posts/new')}>
           新增文章
-        </button>
+        </Button>
       </div>
 
       {/* 篩選與搜尋列 */}
@@ -286,7 +311,7 @@ export default function PostsPage() {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-[var(--color-border-light)] bg-[var(--color-bg-card)] px-4 py-2.5 text-sm text-[var(--color-text-primary)] shadow-sm transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-ring)]"
           >
             <option value="">全部狀態</option>
             <option value="DRAFT">草稿</option>
@@ -309,7 +334,7 @@ export default function PostsPage() {
               setCategoryFilter(e.target.value);
               setPage(1);
             }}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-[var(--color-border-light)] bg-[var(--color-bg-card)] px-4 py-2.5 text-sm text-[var(--color-text-primary)] shadow-sm transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-ring)]"
           >
             <option value="">全部分類</option>
             {categories.map((cat) => (
@@ -322,171 +347,91 @@ export default function PostsPage() {
 
         {/* 搜尋框 */}
         <div className="flex-1">
-          <input
+          <Input
             type="text"
             placeholder="搜尋文章..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full max-w-sm rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="max-w-sm"
           />
         </div>
       </div>
 
       {/* 批次操作列 */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 rounded-md bg-blue-50 px-4 py-2">
-          <span className="text-sm text-blue-700">
+        <div className="flex items-center gap-3 rounded-lg bg-[var(--color-primary-light)] px-4 py-3 border border-[var(--color-primary-ring)]">
+          <span className="text-sm font-medium text-[var(--color-primary)]">
             已選取 {selectedIds.size} 筆
           </span>
-          <button
+          <Button
+            variant="secondary"
             onClick={() => openBatchConfirm('delete')}
-            className="rounded-md bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700"
+            className="!bg-[var(--color-error)] !text-white hover:!bg-red-700"
           >
             批次刪除
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => openBatchConfirm('publish')}
-            className="rounded-md bg-green-600 px-3 py-1 text-sm font-medium text-white hover:bg-green-700"
+            className="!bg-[var(--color-success)] !text-white hover:!bg-emerald-700"
           >
             批次發佈
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => openBatchConfirm('archive')}
-            className="rounded-md bg-yellow-600 px-3 py-1 text-sm font-medium text-white hover:bg-yellow-700"
+            className="!bg-[var(--color-warning)] !text-white hover:!bg-amber-600"
           >
             批次下架
-          </button>
+          </Button>
         </div>
       )}
 
       {/* 文章表格 */}
-      {posts.length === 0 && !loading ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
-          <p className="text-gray-500">尚無文章</p>
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left">
-                  <input
-                    type="checkbox"
-                    aria-label="全選"
-                    checked={selectedIds.size === posts.length && posts.length > 0}
-                    onChange={handleSelectAll}
-                    className="rounded"
-                  />
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  標題
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  狀態
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  分類
-                </th>
-                <th className="px-4 py-3 text-left">
-                  <button
-                    type="button"
-                    onClick={() => handleSort('publishedAt')}
-                    className="text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700"
-                  >
-                    發佈時間 {getSortIcon('publishedAt')}
-                  </button>
-                </th>
-                <th className="px-4 py-3 text-left">
-                  <button
-                    type="button"
-                    onClick={() => handleSort('updatedAt')}
-                    className="text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700"
-                  >
-                    更新時間 {getSortIcon('updatedAt')}
-                  </button>
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {posts.map((post) => (
-                <tr key={post.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      aria-label={`選取 ${post.title}`}
-                      checked={selectedIds.has(post.id)}
-                      onChange={() => handleSelectOne(post.id)}
-                      className="rounded"
-                    />
-                  </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    {post.title}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
-                        STATUS_COLORS[post.status] || 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {STATUS_LABELS[post.status] || post.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
-                    {post.category?.name || '-'}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
-                    {formatDate(post.publishedAt)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
-                    {formatDate(post.updatedAt)}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => router.push(`/admin/posts/${post.id}/edit`)}
-                        className="text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        編輯
-                      </button>
-                      <button
-                        onClick={() => router.push(`/admin/posts/${post.id}/versions`)}
-                        className="text-sm text-purple-600 hover:text-purple-800"
-                      >
-                        版本
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <Table
+        columns={tableColumns}
+        data={tableData}
+        loading={loading}
+        emptyText="尚無文章"
+        actions={(row) => (
+          <>
+            <button
+              onClick={() => router.push(`/admin/posts/${row.id}/edit`)}
+              className="text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
+            >
+              編輯
+            </button>
+            <button
+              onClick={() => router.push(`/admin/posts/${row.id}/versions`)}
+              className="text-sm font-medium text-[var(--color-info)] hover:text-sky-600 transition-colors"
+            >
+              版本
+            </button>
+          </>
+        )}
+      />
 
       {/* 分頁控制 */}
       {meta && meta.totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[var(--color-text-secondary)]">
             共 {meta.total} 筆，第 {meta.page}/{meta.totalPages} 頁
           </p>
-          <div className="flex space-x-2">
-            <button
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
               onClick={() => setPage((p) => p - 1)}
               disabled={!meta.hasPrev}
-              className="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               上一頁
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => setPage((p) => p + 1)}
               disabled={!meta.hasNext}
-              className="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               下一頁
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -494,29 +439,30 @@ export default function PostsPage() {
       {/* 批次操作確認 Modal */}
       {showBatchConfirm && batchAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+          <div className="w-full max-w-sm rounded-lg bg-[var(--color-bg-card)] p-6 shadow-xl">
+            <h2 className="mb-4 text-lg font-semibold text-[var(--color-text-primary)]">
               批次操作確認
             </h2>
-            <p className="mb-6 text-gray-600">
+            <p className="mb-6 text-[var(--color-text-secondary)]">
               確定要批次{batchActionLabels[batchAction]}已選取的 {selectedIds.size} 筆文章嗎？
             </p>
-            <div className="flex justify-end space-x-3">
-              <button
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
                 onClick={() => {
                   setShowBatchConfirm(false);
                   setBatchAction(null);
                 }}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 取消
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleBatchConfirm}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                className="!bg-[var(--color-error)] hover:!bg-red-700"
               >
                 確定
-              </button>
+              </Button>
             </div>
           </div>
         </div>

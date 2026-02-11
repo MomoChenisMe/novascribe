@@ -6,6 +6,7 @@
  *   - 導覽項目：儀表板、文章、分類、標籤、媒體、SEO、設定
  *   - 當前頁面高亮（使用 usePathname()）
  *   - 可收合/展開（桌面模式）
+ *   - Modern Rose Design System 配色
  */
 
 import Link from 'next/link';
@@ -78,8 +79,8 @@ export function Sidebar({ collapsed, onToggle, pendingCount = 0 }: SidebarProps)
   return (
     <nav
       aria-label="側邊欄"
-      className={`flex h-full flex-col bg-gray-900 text-white transition-all duration-300 ${
-        collapsed ? 'w-16' : 'w-64'
+      className={`flex h-full flex-col bg-[var(--color-bg-sidebar)] border-r border-[var(--color-border-light)] transition-all duration-300 ${
+        collapsed ? 'w-16' : 'w-60'
       }`}
     >
       {/* 導覽項目 */}
@@ -93,10 +94,10 @@ export function Sidebar({ collapsed, onToggle, pendingCount = 0 }: SidebarProps)
               <Link
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                className={`flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                   active
-                    ? 'bg-gray-800 text-white'
-                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)]'
+                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-stone-50'
                 } ${collapsed ? 'justify-center' : 'gap-3'}`}
               >
                 <span className="flex-shrink-0 text-lg">{item.icon}</span>
@@ -104,7 +105,7 @@ export function Sidebar({ collapsed, onToggle, pendingCount = 0 }: SidebarProps)
                   <>
                     <span className="sr-only">{item.label}</span>
                     {showBadge && (
-                      <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                      <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-error)] text-xs font-bold text-white">
                         {formatBadgeCount(pendingCount)}
                       </span>
                     )}
@@ -113,7 +114,7 @@ export function Sidebar({ collapsed, onToggle, pendingCount = 0 }: SidebarProps)
                   <>
                     <span className="flex-1">{item.label}</span>
                     {showBadge && (
-                      <span className="ml-auto flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
+                      <span className="ml-auto flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--color-error)] px-1.5 text-xs font-bold text-white">
                         {formatBadgeCount(pendingCount)}
                       </span>
                     )}
@@ -126,11 +127,11 @@ export function Sidebar({ collapsed, onToggle, pendingCount = 0 }: SidebarProps)
       </ul>
 
       {/* 收合/展開按鈕 */}
-      <div className="border-t border-gray-700 p-2">
+      <div className="border-t border-[var(--color-border-light)] p-2">
         <button
           onClick={onToggle}
           aria-label={collapsed ? '展開側邊欄' : '收合側邊欄'}
-          className="flex w-full items-center justify-center rounded-lg px-3 py-2 text-sm text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+          className="flex w-full items-center justify-center rounded-lg px-3 py-2 text-sm text-[var(--color-text-muted)] transition-colors hover:bg-stone-50 hover:text-[var(--color-primary)]"
         >
           {collapsed ? '→' : '←'}
         </button>

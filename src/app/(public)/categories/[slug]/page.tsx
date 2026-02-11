@@ -69,15 +69,15 @@ export default async function CategoryPostsPage({ params, searchParams }: PagePr
 
       {/* Category Header */}
       <div className="mt-6 mb-12">
-        <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+        <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-4">
           {category.name}
         </h1>
         {category.description && (
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-lg text-[var(--color-text-secondary)] leading-relaxed">
             {category.description}
           </p>
         )}
-        <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+        <p className="text-sm text-[var(--color-text-muted)] mt-2">
           共 {total} 篇文章
         </p>
       </div>
@@ -85,13 +85,13 @@ export default async function CategoryPostsPage({ params, searchParams }: PagePr
       {/* Posts List */}
       {posts.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-lg text-[var(--color-text-secondary)]">
             此分類目前沒有文章
           </p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {posts.map(post => (
               <ArticleCard key={post.id} article={post} />
             ))}

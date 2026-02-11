@@ -12,7 +12,7 @@ import type { Heading } from 'mdast';
 export interface TocItem {
   id: string;
   text: string;
-  level: number;
+  level: 2 | 3; // h2 or h3
 }
 
 /**

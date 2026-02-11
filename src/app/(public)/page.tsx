@@ -1,10 +1,13 @@
 import { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
-import Link from 'next/link';
+import ArticleCard from '@/components/public/ArticleCard';
+import Pagination from '@/components/public/Pagination';
+import NewsletterForm from '@/components/public/NewsletterForm';
 
 const SITE_NAME = 'NovaScribe';
 const SITE_DESCRIPTION = '技術部落格 - 分享程式開發、前端技術與實作經驗';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://novascribe.example.com';
+const POSTS_PER_PAGE = 9;
 
 /**
  * 首頁 SEO metadata
@@ -28,83 +31,79 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+interface HomePageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
 /**
- * 首頁
+ * 首頁 - Magazine Grid 文章列表
  */
-export default async function HomePage() {
-  // 載入已發布的文章列表
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const resolvedParams = await searchParams;
+  const currentPage = Number(resolvedParams.page) || 1;
+  const skip = (currentPage - 1) * POSTS_PER_PAGE;
+
+  // 獲取文章總數
+  const totalPosts = await prisma.post.count({
+    where: { status: 'PUBLISHED' },
+  });
+
+  // 載入已發布的文章列表 (含分頁)
   const posts = await prisma.post.findMany({
     where: { status: 'PUBLISHED' },
     include: {
-      author: { select: { name: true, email: true } },
       category: { select: { name: true, slug: true } },
-      tags: {
-        include: { tag: { select: { name: true, slug: true } } },
-      },
     },
     orderBy: { publishedAt: 'desc' },
-    take: 10,
+    skip,
+    take: POSTS_PER_PAGE,
   });
 
+  const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">最新文章</h1>
+    <>
+      <div className="container mx-auto px-4 py-12">
+        <h1 className="text-4xl font-bold mb-12 text-[var(--color-text-primary)]">
+          最新文章
+        </h1>
 
-      {posts.length === 0 ? (
-        <p className="text-gray-600">暫無文章</p>
-      ) : (
-        <div className="space-y-8">
-          {posts.map((post) => (
-            <article key={post.id} className="border-b pb-8">
-              <h2 className="text-2xl font-bold mb-2">
-                <Link
-                  href={`/posts/${post.slug}`}
-                  className="hover:text-blue-600"
-                >
-                  {post.title}
-                </Link>
-              </h2>
+        {posts.length === 0 ? (
+          <p className="text-[var(--color-text-secondary)] text-center py-12">
+            暫無文章
+          </p>
+        ) : (
+          <>
+            {/* Magazine Grid - 3 欄網格佈局 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {posts.map((post) => (
+                <ArticleCard
+                  key={post.id}
+                  post={{
+                    title: post.title,
+                    excerpt: post.excerpt || '',
+                    coverImage: post.coverImage || '/images/default-cover.jpg',
+                    slug: post.slug,
+                    publishedAt: post.publishedAt?.toISOString() || new Date().toISOString(),
+                    category: post.category || { name: '未分類', slug: 'uncategorized' },
+                  }}
+                />
+              ))}
+            </div>
 
-              {post.excerpt && (
-                <p className="text-gray-600 mb-4">{post.excerpt}</p>
-              )}
+            {/* 分頁導航 */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              basePath="/"
+            />
+          </>
+        )}
+      </div>
 
-              <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                {post.category && (
-                  <Link
-                    href={`/categories/${post.category.slug}`}
-                    className="hover:text-blue-600"
-                  >
-                    分類：{post.category.name}
-                  </Link>
-                )}
-
-                {post.tags.length > 0 && (
-                  <div className="flex gap-2">
-                    <span>標籤：</span>
-                    {post.tags.map((postTag) => (
-                      <Link
-                        key={postTag.tagId}
-                        href={`/tags/${postTag.tag.slug}`}
-                        className="hover:text-blue-600"
-                      >
-                        {postTag.tag.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {post.publishedAt && (
-                  <span>
-                    發佈於 {new Date(post.publishedAt).toLocaleDateString('zh-TW')}
-                  </span>
-                )}
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
-    </div>
+      {/* Newsletter 訂閱區塊 */}
+      <NewsletterForm />
+    </>
   );
 }
 

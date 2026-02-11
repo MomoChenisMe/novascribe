@@ -12,11 +12,15 @@
  *   - 分類（下拉）
  *   - 標籤（多選）
  *   - 儲存 + 取消
+ *   - Modern Rose Design System 配色
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { MarkdownEditor } from '@/components/admin/MarkdownEditor';
+import Input from '@/components/ui/Input';
+import Textarea from '@/components/ui/Textarea';
+import Button from '@/components/ui/Button';
 
 interface Category {
   id: string;
@@ -154,43 +158,33 @@ export default function NewPostPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">新增文章</h1>
+        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">新增文章</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 標題 */}
-        <div>
-          <label htmlFor="post-title" className="block text-sm font-medium text-gray-700">
-            標題
-          </label>
-          <input
-            id="post-title"
-            type="text"
-            value={title}
-            onChange={(e) => handleTitleChange(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            required
-          />
-        </div>
+        <Input
+          id="post-title"
+          label="標題"
+          type="text"
+          value={title}
+          onChange={(e) => handleTitleChange(e.target.value)}
+          required
+        />
 
         {/* Slug */}
-        <div>
-          <label htmlFor="post-slug" className="block text-sm font-medium text-gray-700">
-            Slug
-          </label>
-          <input
-            id="post-slug"
-            type="text"
-            value={slug}
-            onChange={(e) => handleSlugChange(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            required
-          />
-        </div>
+        <Input
+          id="post-slug"
+          label="Slug"
+          type="text"
+          value={slug}
+          onChange={(e) => handleSlugChange(e.target.value)}
+          required
+        />
 
         {/* 內容（Markdown 編輯器） */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1.5 block text-sm font-medium text-[var(--color-text-primary)]">
             內容
           </label>
           <MarkdownEditor
@@ -201,45 +195,35 @@ export default function NewPostPage() {
         </div>
 
         {/* 摘要 */}
-        <div>
-          <label htmlFor="post-excerpt" className="block text-sm font-medium text-gray-700">
-            摘要
-          </label>
-          <textarea
-            id="post-excerpt"
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
-            rows={3}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-        </div>
+        <Textarea
+          id="post-excerpt"
+          label="摘要"
+          value={excerpt}
+          onChange={(e) => setExcerpt(e.target.value)}
+          rows={3}
+        />
 
         {/* 封面圖片 */}
-        <div>
-          <label htmlFor="post-cover" className="block text-sm font-medium text-gray-700">
-            封面圖片
-          </label>
-          <input
-            id="post-cover"
-            type="text"
-            value={coverImage}
-            onChange={(e) => setCoverImage(e.target.value)}
-            placeholder="輸入圖片 URL"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-        </div>
+        <Input
+          id="post-cover"
+          label="封面圖片"
+          type="text"
+          value={coverImage}
+          onChange={(e) => setCoverImage(e.target.value)}
+          placeholder="輸入圖片 URL"
+        />
 
         {/* 狀態與排程 */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="post-status" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="post-status" className="block text-sm font-medium text-[var(--color-text-primary)]">
               狀態
             </label>
             <select
               id="post-status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1.5 block w-full rounded-lg border border-[var(--color-border-light)] bg-[var(--color-bg-card)] px-4 py-2.5 text-[var(--color-text-primary)] shadow-sm transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-ring)]"
             >
               <option value="DRAFT">草稿</option>
               <option value="PUBLISHED">已發佈</option>
@@ -249,31 +233,26 @@ export default function NewPostPage() {
           </div>
 
           {status === 'SCHEDULED' && (
-            <div>
-              <label htmlFor="post-scheduled" className="block text-sm font-medium text-gray-700">
-                排程時間
-              </label>
-              <input
-                id="post-scheduled"
-                type="datetime-local"
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
+            <Input
+              id="post-scheduled"
+              label="排程時間"
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+            />
           )}
         </div>
 
         {/* 分類 */}
         <div>
-          <label htmlFor="post-category" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="post-category" className="block text-sm font-medium text-[var(--color-text-primary)]">
             分類
           </label>
           <select
             id="post-category"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1.5 block w-full rounded-lg border border-[var(--color-border-light)] bg-[var(--color-bg-card)] px-4 py-2.5 text-[var(--color-text-primary)] shadow-sm transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-ring)]"
           >
             <option value="">無分類</option>
             {categories.map((cat) => (
@@ -286,44 +265,45 @@ export default function NewPostPage() {
 
         {/* 標籤 */}
         <div>
-          <span className="block text-sm font-medium text-gray-700">標籤</span>
+          <span className="block text-sm font-medium text-[var(--color-text-primary)]">標籤</span>
           <div className="mt-2 flex flex-wrap gap-2">
             {tags.map((tag) => (
               <button
                 key={tag.id}
                 type="button"
                 onClick={() => toggleTag(tag.id)}
-                className={`rounded-full px-3 py-1 text-sm ${
+                className={`rounded-full px-3 py-1 text-sm font-medium transition-all ${
                   selectedTagIds.has(tag.id)
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-[var(--color-primary)] text-white'
+                    : 'bg-stone-100 text-[var(--color-text-secondary)] hover:bg-stone-200'
                 }`}
               >
                 {tag.name}
               </button>
             ))}
             {tags.length === 0 && (
-              <p className="text-sm text-gray-400">尚無標籤</p>
+              <p className="text-sm text-[var(--color-text-muted)]">尚無標籤</p>
             )}
           </div>
         </div>
 
         {/* 按鈕列 */}
-        <div className="flex justify-end space-x-3 border-t border-gray-200 pt-6">
-          <button
+        <div className="flex justify-end gap-3 border-t border-[var(--color-border-light)] pt-6">
+          <Button
             type="button"
+            variant="outline"
             onClick={() => router.push('/admin/posts')}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             取消
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
+            variant="primary"
             disabled={submitting}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            loading={submitting}
           >
             儲存
-          </button>
+          </Button>
         </div>
       </form>
     </div>
