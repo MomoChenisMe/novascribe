@@ -5,7 +5,7 @@ interface Category {
   name: string
   slug: string
   description?: string | null
-  _count: { posts: number }
+  postCount: number
 }
 
 interface CategoryListProps {
@@ -21,7 +21,7 @@ export default function CategoryList({
 }: CategoryListProps) {
   // 按文章數降序排列
   const sortedCategories = [...categories].sort(
-    (a, b) => b._count.posts - a._count.posts
+    (a, b) => b.postCount - a.postCount
   )
 
   if (sortedCategories.length === 0) {
@@ -54,7 +54,7 @@ export default function CategoryList({
                 )}
               </div>
               <span className="text-sm text-secondary ml-4">
-                {category._count.posts} 篇
+                {category.postCount} 篇
               </span>
             </Link>
           </li>

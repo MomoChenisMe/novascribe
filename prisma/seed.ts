@@ -5,8 +5,8 @@
  *   - 支援環境變數覆蓋預設值
  */
 
-import { prisma } from '@/lib/prisma';
-import { hashPassword } from '@/lib/password';
+import { prisma } from '../src/lib/prisma';
+import { hashPassword } from '../src/lib/password';
 
 const DEFAULT_ADMIN_EMAIL = 'admin@novascribe.local';
 const DEFAULT_ADMIN_PASSWORD = 'changeme123';

@@ -1,134 +1,174 @@
 /**
- * @file 內容種子資料腳本
- * @description 建立範例分類、標籤與文章資料。
- *   - 使用 upsert 確保可重複執行
- *   - 需要先執行 seed.ts 建立管理者帳號
+ * @file 前台內容 Seed Script
+ * @description 為 NovaScribe 前台建立初始內容（分類、標籤、文章、站點設定）
  */
 
-import { prisma } from '@/lib/prisma';
+import 'dotenv/config';
+import { PrismaClient } from '../src/generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-export async function seedContent(): Promise<void> {
-  // 1. 取得管理者帳號
-  const admin = await prisma.user.findFirst();
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL is missing');
+}
+
+const adapter = new PrismaPg({ connectionString: databaseUrl });
+const prisma = new PrismaClient({ adapter });
+
+async function main() {
+  console.log('開始建立前台內容...');
+
+  // 取得 admin 使用者
+  const admin = await prisma.user.findUnique({
+    where: { email: 'admin@novascribe.local' },
+  });
+
   if (!admin) {
-    throw new Error('找不到使用者，請先執行 seed.ts 建立管理者帳號');
+    throw new Error('Admin 使用者不存在，請先執行主要 seed');
   }
 
-  console.log(`使用管理者帳號: ${admin.email} (id: ${admin.id})`);
-
-  // 2. 建立分類
+  // 建立分類
+  console.log('建立分類...');
   const techCategory = await prisma.category.upsert({
-    where: { slug: 'technology' },
+    where: { slug: 'tech' },
+    update: {},
     create: {
-      id: 'cat-technology',
       name: '技術',
-      slug: 'technology',
-      sortOrder: 0,
-    },
-    update: {
-      name: '技術',
-      sortOrder: 0,
-    },
-  });
-
-  const frontendCategory = await prisma.category.upsert({
-    where: { slug: 'frontend' },
-    create: {
-      id: 'cat-frontend',
-      name: '前端開發',
-      slug: 'frontend',
-      parentId: techCategory.id,
-      sortOrder: 1,
-    },
-    update: {
-      name: '前端開發',
-      parentId: techCategory.id,
+      slug: 'tech',
       sortOrder: 1,
     },
   });
 
-  const backendCategory = await prisma.category.upsert({
-    where: { slug: 'backend' },
+  const lifeCategory = await prisma.category.upsert({
+    where: { slug: 'life' },
+    update: {},
     create: {
-      id: 'cat-backend',
-      name: '後端開發',
-      slug: 'backend',
-      parentId: techCategory.id,
-      sortOrder: 2,
-    },
-    update: {
-      name: '後端開發',
-      parentId: techCategory.id,
+      name: '生活',
+      slug: 'life',
       sortOrder: 2,
     },
   });
 
-  const lifestyleCategory = await prisma.category.upsert({
-    where: { slug: 'lifestyle' },
+  const noteCategory = await prisma.category.upsert({
+    where: { slug: 'note' },
+    update: {},
     create: {
-      id: 'cat-lifestyle',
-      name: '生活',
-      slug: 'lifestyle',
-      sortOrder: 3,
-    },
-    update: {
-      name: '生活',
+      name: '隨筆',
+      slug: 'note',
       sortOrder: 3,
     },
   });
 
-  console.log(`建立分類: ${[techCategory, frontendCategory, backendCategory, lifestyleCategory].map(c => c.name).join(', ')}`);
+  // 建立標籤
+  console.log('建立標籤...');
+  const tags = await Promise.all([
+    prisma.tag.upsert({
+      where: { slug: 'javascript' },
+      update: {},
+      create: { name: 'JavaScript', slug: 'javascript' },
+    }),
+    prisma.tag.upsert({
+      where: { slug: 'typescript' },
+      update: {},
+      create: { name: 'TypeScript', slug: 'typescript' },
+    }),
+    prisma.tag.upsert({
+      where: { slug: 'react' },
+      update: {},
+      create: { name: 'React', slug: 'react' },
+    }),
+    prisma.tag.upsert({
+      where: { slug: 'nextjs' },
+      update: {},
+      create: { name: 'Next.js', slug: 'nextjs' },
+    }),
+    prisma.tag.upsert({
+      where: { slug: 'nodejs' },
+      update: {},
+      create: { name: 'Node.js', slug: 'nodejs' },
+    }),
+    prisma.tag.upsert({
+      where: { slug: 'prisma' },
+      update: {},
+      create: { name: 'Prisma', slug: 'prisma' },
+    }),
+    prisma.tag.upsert({
+      where: { slug: 'postgresql' },
+      update: {},
+      create: { name: 'PostgreSQL', slug: 'postgresql' },
+    }),
+    prisma.tag.upsert({
+      where: { slug: 'tdd' },
+      update: {},
+      create: { name: 'TDD', slug: 'tdd' },
+    }),
+    prisma.tag.upsert({
+      where: { slug: 'frontend' },
+      update: {},
+      create: { name: '前端開發', slug: 'frontend' },
+    }),
+    prisma.tag.upsert({
+      where: { slug: 'backend' },
+      update: {},
+      create: { name: '後端開發', slug: 'backend' },
+    }),
+  ]);
 
-  // 3. 建立標籤
-  const tagNextjs = await prisma.tag.upsert({
-    where: { slug: 'nextjs' },
-    create: { id: 'tag-nextjs', name: 'Next.js', slug: 'nextjs' },
-    update: { name: 'Next.js' },
-  });
-
-  const tagReact = await prisma.tag.upsert({
-    where: { slug: 'react' },
-    create: { id: 'tag-react', name: 'React', slug: 'react' },
-    update: { name: 'React' },
-  });
-
-  const tagTypescript = await prisma.tag.upsert({
-    where: { slug: 'typescript' },
-    create: { id: 'tag-typescript', name: 'TypeScript', slug: 'typescript' },
-    update: { name: 'TypeScript' },
-  });
-
-  const tagPrisma = await prisma.tag.upsert({
-    where: { slug: 'prisma' },
-    create: { id: 'tag-prisma', name: 'Prisma', slug: 'prisma' },
-    update: { name: 'Prisma' },
-  });
-
-  const tagTailwind = await prisma.tag.upsert({
-    where: { slug: 'tailwindcss' },
-    create: { id: 'tag-tailwindcss', name: 'Tailwind CSS', slug: 'tailwindcss' },
-    update: { name: 'Tailwind CSS' },
-  });
-
-  console.log(`建立標籤: ${[tagNextjs, tagReact, tagTypescript, tagPrisma, tagTailwind].map(t => t.name).join(', ')}`);
-
-  // 4. 建立文章
+  // 建立文章
+  console.log('建立文章...');
   const post1 = await prisma.post.upsert({
-    where: { slug: 'getting-started-with-nextjs' },
+    where: { slug: 'welcome-to-novascribe' },
+    update: {},
     create: {
-      id: 'post-nextjs-intro',
-      title: 'Next.js 入門指南',
-      slug: 'getting-started-with-nextjs',
-      content: `# Next.js 入門指南
+      title: '歡迎來到 NovaScribe',
+      slug: 'welcome-to-novascribe',
+      content: `# 歡迎來到 NovaScribe
 
-Next.js 是一個基於 React 的全端框架，提供了伺服器端渲染、靜態網站生成等強大功能。
+這是一個使用 Next.js 16、Prisma 7 和 PostgreSQL 建立的現代化部落格系統。
+
+## 主要特色
+
+- **現代化技術棧**：Next.js 16 App Router + TypeScript
+- **強大的資料庫**：Prisma 7 ORM + PostgreSQL 18
+- **完整的後台管理**：文章、分類、標籤、評論管理
+- **評論系統**：支援嵌套回覆、反垃圾郵件、Markdown
+- **SEO 優化**：完整的 meta tags、sitemap、結構化資料
+- **響應式設計**：適配各種螢幕尺寸
+
+開始探索吧！`,
+      excerpt: '使用 Next.js 16、Prisma 7 和 PostgreSQL 建立的現代化部落格系統',
+      status: 'PUBLISHED',
+      publishedAt: new Date(),
+      authorId: admin.id,
+      categoryId: techCategory.id,
+    },
+  });
+
+  await prisma.postTag.createMany({
+    data: [
+      { postId: post1.id, tagId: tags[3].id }, // Next.js
+      { postId: post1.id, tagId: tags[5].id }, // Prisma
+      { postId: post1.id, tagId: tags[6].id }, // PostgreSQL
+    ],
+    skipDuplicates: true,
+  });
+
+  const post2 = await prisma.post.upsert({
+    where: { slug: 'getting-started-with-nextjs' },
+    update: {},
+    create: {
+      title: 'Next.js 16 入門指南',
+      slug: 'getting-started-with-nextjs',
+      content: `# Next.js 16 入門指南
+
+Next.js 是一個強大的 React 框架，提供了許多開箱即用的功能。
 
 ## 為什麼選擇 Next.js？
 
-- **伺服器端渲染 (SSR)**：提升 SEO 和首屏載入速度
-- **靜態網站生成 (SSG)**：適合內容導向的網站
-- **API Routes**：內建 API 端點支援
-- **檔案系統路由**：直覺的路由設計
+1. **Server Components**：減少客戶端 JavaScript
+2. **App Router**：更靈活的路由系統
+3. **優秀的效能**：自動優化和程式碼分割
+4. **內建 SEO**：完整的 metadata API
 
 ## 快速開始
 
@@ -138,155 +178,79 @@ cd my-app
 npm run dev
 \`\`\`
 
-開始你的 Next.js 之旅吧！`,
-      excerpt: 'Next.js 是一個基於 React 的全端框架，本文帶你快速入門。',
+就這麼簡單！`,
+      excerpt: '了解 Next.js 16 的核心功能和快速開始方式',
       status: 'PUBLISHED',
-      publishedAt: new Date('2026-01-15T10:00:00Z'),
+      publishedAt: new Date(Date.now() - 86400000), // 昨天
       authorId: admin.id,
-      categoryId: frontendCategory.id,
-    },
-    update: {
-      title: 'Next.js 入門指南',
-      content: `# Next.js 入門指南
-
-Next.js 是一個基於 React 的全端框架，提供了伺服器端渲染、靜態網站生成等強大功能。`,
+      categoryId: techCategory.id,
     },
   });
 
-  const post2 = await prisma.post.upsert({
-    where: { slug: 'prisma-orm-guide' },
-    create: {
-      id: 'post-prisma-guide',
-      title: 'Prisma ORM 完整指南',
-      slug: 'prisma-orm-guide',
-      content: `# Prisma ORM 完整指南
-
-Prisma 是 Node.js 和 TypeScript 的下一代 ORM，提供型別安全的資料庫存取。
-
-## 核心概念
-
-- **Prisma Schema**：定義資料模型
-- **Prisma Client**：型別安全的查詢建構器
-- **Prisma Migrate**：資料庫遷移工具
-
-## 定義 Schema
-
-\`\`\`prisma
-model User {
-  id    String @id @default(cuid())
-  email String @unique
-  name  String?
-  posts Post[]
-}
-\`\`\``,
-      excerpt: 'Prisma 是 Node.js 和 TypeScript 的下一代 ORM，本文提供完整使用指南。',
-      status: 'PUBLISHED',
-      publishedAt: new Date('2026-01-20T14:00:00Z'),
-      authorId: admin.id,
-      categoryId: backendCategory.id,
-    },
-    update: {
-      title: 'Prisma ORM 完整指南',
-    },
+  await prisma.postTag.createMany({
+    data: [
+      { postId: post2.id, tagId: tags[2].id }, // React
+      { postId: post2.id, tagId: tags[3].id }, // Next.js
+      { postId: post2.id, tagId: tags[8].id }, // 前端開發
+    ],
+    skipDuplicates: true,
   });
 
   const post3 = await prisma.post.upsert({
-    where: { slug: 'tailwind-css-best-practices' },
+    where: { slug: 'draft-post-example' },
+    update: {},
     create: {
-      id: 'post-tailwind-tips',
-      title: 'Tailwind CSS 最佳實踐',
-      slug: 'tailwind-css-best-practices',
-      content: `# Tailwind CSS 最佳實踐
-
-Tailwind CSS 是一個 utility-first 的 CSS 框架，讓你快速建構現代化 UI。
-
-## 重點技巧
-
-1. 善用 @apply 提取常用樣式
-2. 使用自訂色彩系統
-3. 響應式設計優先`,
-      excerpt: '分享 Tailwind CSS 的最佳實踐和常用技巧。',
+      title: '草稿文章範例',
+      slug: 'draft-post-example',
+      content: '這是一篇草稿文章，尚未發佈。',
+      excerpt: '草稿文章不會在前台顯示',
       status: 'DRAFT',
       authorId: admin.id,
-      categoryId: frontendCategory.id,
-    },
-    update: {
-      title: 'Tailwind CSS 最佳實踐',
+      categoryId: noteCategory.id,
     },
   });
 
-  console.log(`建立文章: ${[post1, post2, post3].map(p => p.title).join(', ')}`);
-
-  // 5. 建立文章標籤關聯
-  await prisma.postTag.createMany({
-    data: [
-      { postId: post1.id, tagId: tagNextjs.id },
-      { postId: post1.id, tagId: tagReact.id },
-      { postId: post1.id, tagId: tagTypescript.id },
-    ],
-    skipDuplicates: true,
-  });
-
-  await prisma.postTag.createMany({
-    data: [
-      { postId: post2.id, tagId: tagPrisma.id },
-      { postId: post2.id, tagId: tagTypescript.id },
-    ],
-    skipDuplicates: true,
-  });
-
-  await prisma.postTag.createMany({
-    data: [
-      { postId: post3.id, tagId: tagTailwind.id },
-    ],
-    skipDuplicates: true,
-  });
-
-  console.log('建立文章標籤關聯完成');
-
-  // 6. 建立版本記錄
-  await prisma.postVersion.create({
-    data: {
-      postId: post1.id,
-      title: post1.title,
-      content: 'Next.js 入門指南初版內容',
-      version: 1,
+  // 建立站點設定
+  console.log('建立站點設定...');
+  await prisma.siteSetting.upsert({
+    where: { key: 'site_name' },
+    update: {},
+    create: {
+      key: 'site_name',
+      value: 'NovaScribe',
     },
   });
 
-  await prisma.postVersion.create({
-    data: {
-      postId: post2.id,
-      title: post2.title,
-      content: 'Prisma ORM 完整指南初版內容',
-      version: 1,
+  await prisma.siteSetting.upsert({
+    where: { key: 'site_description' },
+    update: {},
+    create: {
+      key: 'site_description',
+      value: '一個現代化的部落格系統',
     },
   });
 
-  await prisma.postVersion.create({
-    data: {
-      postId: post3.id,
-      title: post3.title,
-      content: 'Tailwind CSS 最佳實踐初版內容',
-      version: 1,
+  await prisma.siteSetting.upsert({
+    where: { key: 'comment_auto_approve' },
+    update: {},
+    create: {
+      key: 'comment_auto_approve',
+      value: 'false',
     },
   });
 
-  console.log('建立版本記錄完成');
-  console.log('內容種子資料建立完成！');
+  console.log('✅ 前台內容建立完成！');
+  console.log(`- 分類：3 個`);
+  console.log(`- 標籤：${tags.length} 個`);
+  console.log(`- 文章：3 篇（2 已發佈，1 草稿）`);
+  console.log(`- 站點設定：3 筆`);
 }
 
-// Execute when run directly
-const isDirectExecution =
-  typeof require !== 'undefined' && require.main === module;
-
-if (isDirectExecution) {
-  seedContent()
-    .catch((e) => {
-      console.error('Content seed failed:', e);
-      process.exit(1);
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
-    });
-}
+main()
+  .catch((error) => {
+    console.error('❌ Seed 失敗：', error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

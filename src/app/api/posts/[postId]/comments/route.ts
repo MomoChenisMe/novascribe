@@ -8,12 +8,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createComment, getApprovedComments } from '@/lib/services/comment.service';
 import { checkAntiSpam } from '@/lib/anti-spam';
 import { sendNewCommentNotification } from '@/lib/email';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     postId: string;
-  };
+  }>;
 }
 
 /**
@@ -22,7 +22,7 @@ interface RouteContext {
  */
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const { postId } = context.params;
+    const { postId } = await context.params;
 
     // 解析 request body
     const body = await request.json();
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { postId } = context.params;
+    const { postId } = await context.params;
 
     // 從 query string 取得分頁參數
     const { searchParams } = new URL(request.url);

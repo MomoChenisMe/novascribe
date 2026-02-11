@@ -1,3 +1,4 @@
+import type { PageProps } from 'next'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getCategoryBySlug } from '@/lib/services/public-category.service'
@@ -8,20 +9,18 @@ import Breadcrumb from '@/components/public/common/Breadcrumb'
 
 export const revalidate = 300 // 每 5 分鐘重新驗證
 
-interface CategoryPostsPageProps {
-  params: { slug: string }
-  searchParams: { page?: string }
-}
+export async function generateMetadata({ params }: PageProps<'/categories/[slug]'>): Promise<Metadata> {
+  const { slug } = await params
+  const result = await getCategoryBySlug(slug)
 
-export async function generateMetadata({ params }: CategoryPostsPageProps): Promise<Metadata> {
-  const category = await getCategoryBySlug(params.slug)
-
-  if (!category) {
+  if (!result) {
     return {
       title: '分類未找到',
       description: '您要找的分類不存在。'
     }
   }
+
+  const { category } = result
 
   return {
     title: `NovaScribe — ${category.name}`,
@@ -43,19 +42,18 @@ export async function generateMetadata({ params }: CategoryPostsPageProps): Prom
   }
 }
 
-export default async function CategoryPostsPage({ params, searchParams }: CategoryPostsPageProps) {
-  const category = await getCategoryBySlug(params.slug)
+export default async function CategoryPostsPage({ params, searchParams }: PageProps<'/categories/[slug]'>) {
+  const { slug } = await params
+  const { page: pageParam } = await searchParams
+  const currentPage = parseInt(pageParam || '1', 10)
+  
+  const result = await getCategoryBySlug(slug, { page: currentPage, limit: 10 })
 
-  if (!category) {
+  if (!result) {
     notFound()
   }
 
-  const currentPage = parseInt(searchParams.page || '1', 10)
-  const { posts, total, totalPages } = await getPublishedPosts({
-    page: currentPage,
-    limit: 10,
-    categorySlug: params.slug
-  })
+  const { category, posts, total, totalPages } = result
 
   // 麵包屑
   const breadcrumbItems = [
@@ -95,7 +93,7 @@ export default async function CategoryPostsPage({ params, searchParams }: Catego
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             {posts.map(post => (
-              <ArticleCard key={post.id} post={post} />
+              <ArticleCard key={post.id} article={post} />
             ))}
           </div>
 

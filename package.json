@@ -17,6 +17,7 @@
   "dependencies": {
     "@google-analytics/data": "^5.2.1",
     "@next/third-parties": "^16.1.6",
+    "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@shikijs/rehype": "^3.22.0",
     "bcrypt": "^6.0.0",
@@ -27,6 +28,7 @@
     "next": "16.1.6",
     "next-auth": "^4.24.13",
     "nodemailer": "^7.0.13",
+    "pg": "^8.18.0",
     "pinyin": "^4.0.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",

@@ -1,7 +1,7 @@
 /**
  * @file /api/admin/comments/stats Route Handler
  * @description 評論統計資料 API
- *   - GET：取得評論統計資料（總數、待審核數、已批准數、已拒絕數、垃圾評論數）
+ *   - GET：取得評論統計資料（總數、待審核數、已批准數、垃圾評論數、已刪除數）
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -24,12 +24,12 @@ export async function GET(request: NextRequest) {
 
   try {
     // 平行查詢所有統計資料
-    const [total, pending, approved, rejected, spam] = await Promise.all([
+    const [total, pending, approved, spam, deleted] = await Promise.all([
       prisma.comment.count({}),
       prisma.comment.count({ where: { status: 'PENDING' } }),
       prisma.comment.count({ where: { status: 'APPROVED' } }),
-      prisma.comment.count({ where: { status: 'REJECTED' } }),
       prisma.comment.count({ where: { status: 'SPAM' } }),
+      prisma.comment.count({ where: { status: 'DELETED' } }),
     ]);
 
     return NextResponse.json(
@@ -37,8 +37,8 @@ export async function GET(request: NextRequest) {
         total,
         pending,
         approved,
-        rejected,
         spam,
+        deleted,
       },
       { status: 200 }
     );

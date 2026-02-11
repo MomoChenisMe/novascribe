@@ -1,3 +1,4 @@
+import type { PageProps } from 'next'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getTagBySlug } from '@/lib/services/public-tag.service'
@@ -8,20 +9,18 @@ import Breadcrumb from '@/components/public/common/Breadcrumb'
 
 export const revalidate = 300 // 每 5 分鐘重新驗證
 
-interface TagPostsPageProps {
-  params: { slug: string }
-  searchParams: { page?: string }
-}
+export async function generateMetadata({ params }: PageProps<'/tags/[slug]'>): Promise<Metadata> {
+  const { slug } = await params
+  const result = await getTagBySlug(slug)
 
-export async function generateMetadata({ params }: TagPostsPageProps): Promise<Metadata> {
-  const tag = await getTagBySlug(params.slug)
-
-  if (!tag) {
+  if (!result) {
     return {
       title: '標籤未找到',
       description: '您要找的標籤不存在。'
     }
   }
+
+  const { tag } = result
 
   return {
     title: `NovaScribe — ${tag.name}`,
@@ -43,19 +42,18 @@ export async function generateMetadata({ params }: TagPostsPageProps): Promise<M
   }
 }
 
-export default async function TagPostsPage({ params, searchParams }: TagPostsPageProps) {
-  const tag = await getTagBySlug(params.slug)
+export default async function TagPostsPage({ params, searchParams }: PageProps<'/tags/[slug]'>) {
+  const { slug } = await params
+  const { page: pageParam } = await searchParams
+  const currentPage = parseInt(pageParam || '1', 10)
+  
+  const result = await getTagBySlug(slug, { page: currentPage, limit: 10 })
 
-  if (!tag) {
+  if (!result) {
     notFound()
   }
 
-  const currentPage = parseInt(searchParams.page || '1', 10)
-  const { posts, total, totalPages } = await getPublishedPosts({
-    page: currentPage,
-    limit: 10,
-    tagSlug: params.slug
-  })
+  const { tag, posts, total, totalPages } = result
 
   // 麵包屑
   const breadcrumbItems = [
@@ -90,7 +88,7 @@ export default async function TagPostsPage({ params, searchParams }: TagPostsPag
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             {posts.map(post => (
-              <ArticleCard key={post.id} post={post} />
+              <ArticleCard key={post.id} article={post} />
             ))}
           </div>
 

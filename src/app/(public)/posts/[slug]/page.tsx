@@ -1,3 +1,4 @@
+import type { PageProps } from 'next'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getPostBySlug, getRelatedPosts } from '@/lib/services/public-post.service'
@@ -12,12 +13,9 @@ import CommentSection from '@/components/public/comment/CommentSection'
 
 export const revalidate = 60 // 每 60 秒重新驗證
 
-interface PostPageProps {
-  params: { slug: string }
-}
-
-export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug)
+export async function generateMetadata({ params }: PageProps<'/posts/[slug]'>): Promise<Metadata> {
+  const { slug } = await params
+  const post = await getPostBySlug(slug)
 
   if (!post || post.status !== 'PUBLISHED') {
     return {
@@ -55,8 +53,9 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   }
 }
 
-export default async function PostPage({ params }: PostPageProps) {
-  const post = await getPostBySlug(params.slug)
+export default async function PostPage({ params }: PageProps<'/posts/[slug]'>) {
+  const { slug } = await params
+  const post = await getPostBySlug(slug)
 
   // 文章不存在或未發佈，返回 404
   if (!post || post.status !== 'PUBLISHED') {
@@ -86,7 +85,7 @@ export default async function PostPage({ params }: PostPageProps) {
         {/* Main Content */}
         <article className="lg:col-span-3">
           {/* Article Header */}
-          <ArticleHeader post={post} />
+          <ArticleHeader article={post} />
 
           {/* Article Content */}
           <div className="mt-8">

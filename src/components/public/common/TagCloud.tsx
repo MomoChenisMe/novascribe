@@ -4,7 +4,7 @@ interface Tag {
   id: string
   name: string
   slug: string
-  _count: { posts: number }
+  postCount: number
 }
 
 interface TagCloudProps {
@@ -22,7 +22,7 @@ export default function TagCloud({
 }: TagCloudProps) {
   // 按文章數降序排列並限制數量
   const sortedTags = [...tags]
-    .sort((a, b) => b._count.posts - a._count.posts)
+    .sort((a, b) => b.postCount - a.postCount)
     .slice(0, maxTags)
 
   if (sortedTags.length === 0) {
@@ -35,8 +35,8 @@ export default function TagCloud({
   }
 
   // 計算字體大小：根據文章數分成 5 個等級
-  const maxCount = Math.max(...sortedTags.map((tag) => tag._count.posts))
-  const minCount = Math.min(...sortedTags.map((tag) => tag._count.posts))
+  const maxCount = Math.max(...sortedTags.map((tag) => tag.postCount))
+  const minCount = Math.min(...sortedTags.map((tag) => tag.postCount))
 
   const getFontSizeClass = (count: number) => {
     if (maxCount === minCount) return 'text-base'
@@ -57,11 +57,11 @@ export default function TagCloud({
           <Link
             key={tag.id}
             href={`/tags/${tag.slug}`}
-            className={`inline-block px-3 py-1 bg-secondary/10 hover:bg-primary/10 text-secondary hover:text-primary rounded-full transition-all hover:scale-105 ${getFontSizeClass(tag._count.posts)}`}
+            className={`inline-block px-3 py-1 bg-secondary/10 hover:bg-primary/10 text-secondary hover:text-primary rounded-full transition-all hover:scale-105 ${getFontSizeClass(tag.postCount)}`}
           >
             #{tag.name}
             {showCount && (
-              <span className="ml-1 text-xs opacity-70">({tag._count.posts})</span>
+              <span className="ml-1 text-xs opacity-70">({tag.postCount})</span>
             )}
           </Link>
         ))}

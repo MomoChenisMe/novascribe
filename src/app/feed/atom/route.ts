@@ -1,5 +1,5 @@
 import { Feed } from 'feed';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { renderMarkdown } from '@/lib/markdown';
 
 const SITE_NAME = 'NovaScribe';
