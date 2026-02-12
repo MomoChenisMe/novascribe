@@ -1,7 +1,7 @@
 ## 1. 基礎建設 - Design System 調整
 
-- [ ] 1.1 更新 `tailwind.config.ts`：調整色彩變數 (Accents Only 策略)
-- [ ] 1.2 更新 `src/app/globals.css`：設定 Monochrome 基底色與 Typography (Full Sans)
+- [x] 1.1 更新 `tailwind.config.ts`：調整色彩變數 (Accents Only 策略)
+- [x] 1.2 更新 `src/app/globals.css`：設定 Monochrome 基底色與 Typography (Full Sans)
 - [ ] 1.3 測試：驗證色彩與字體變更生效
 
 ## 2. Layout 核心 - Minimal Navigation
