@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
-import ArticleCard from '@/components/public/ArticleCard';
+import { FeaturedHero } from '@/components/public/home/FeaturedHero';
+import { VisualGrid } from '@/components/public/home/VisualGrid';
 import Pagination from '@/components/public/Pagination';
-import NewsletterForm from '@/components/public/NewsletterForm';
 
 const SITE_NAME = 'NovaScribe';
 const SITE_DESCRIPTION = '技術部落格 - 分享程式開發、前端技術與實作經驗';
@@ -36,7 +36,8 @@ interface HomePageProps {
 }
 
 /**
- * 首頁 - Magazine Grid 文章列表
+ * 首頁 - Magazine Style Layout
+ * Featured Hero (最新文章) + Visual Grid (其餘文章)
  */
 export default async function HomePage({ searchParams }: HomePageProps) {
   const resolvedParams = await searchParams;
@@ -48,7 +49,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     where: { status: 'PUBLISHED' },
   });
 
-  // 載入已發布的文章列表 (含分頁)
+  // 載入已發布的文章列表
   const posts = await prisma.post.findMany({
     where: { status: 'PUBLISHED' },
     include: {
@@ -56,53 +57,51 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     },
     orderBy: { publishedAt: 'desc' },
     skip,
-    take: POSTS_PER_PAGE,
+    take: POSTS_PER_PAGE + (currentPage === 1 ? 1 : 0), // 第一頁多取一篇作為 Hero
   });
 
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
 
+  // 第一頁：第一篇為 Hero，其餘進 Grid
+  const isFirstPage = currentPage === 1;
+  const featuredPost = isFirstPage && posts.length > 0 ? posts[0] : null;
+  const gridPosts = isFirstPage ? posts.slice(1) : posts;
+
+  const mapPost = (post: (typeof posts)[0]) => ({
+    title: post.title,
+    excerpt: post.excerpt || '',
+    coverImage: post.coverImage || '/images/default-cover.jpg',
+    slug: post.slug,
+    publishedAt: post.publishedAt?.toISOString() || new Date().toISOString(),
+    category: post.category || { name: '未分類', slug: 'uncategorized' },
+  });
+
   return (
     <>
-      <div className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold mb-12 text-[var(--color-text-primary)]">
-          最新文章
-        </h1>
+      {/* Featured Hero - 僅首頁第一頁顯示 */}
+      {featuredPost && <FeaturedHero post={mapPost(featuredPost)} />}
 
+      {/* Visual Grid */}
+      <div className="container-responsive py-12">
         {posts.length === 0 ? (
-          <p className="text-[var(--color-text-secondary)] text-center py-12">
+          <p className="text-text-secondary text-center py-12">
             暫無文章
           </p>
         ) : (
           <>
-            {/* Magazine Grid - 3 欄網格佈局 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {posts.map((post) => (
-                <ArticleCard
-                  key={post.id}
-                  post={{
-                    title: post.title,
-                    excerpt: post.excerpt || '',
-                    coverImage: post.coverImage || '/images/default-cover.jpg',
-                    slug: post.slug,
-                    publishedAt: post.publishedAt?.toISOString() || new Date().toISOString(),
-                    category: post.category || { name: '未分類', slug: 'uncategorized' },
-                  }}
-                />
-              ))}
-            </div>
+            <VisualGrid posts={gridPosts.map(mapPost)} />
 
             {/* 分頁導航 */}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              basePath="/"
-            />
+            <div className="mt-12">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                basePath="/"
+              />
+            </div>
           </>
         )}
       </div>
-
-      {/* Newsletter 訂閱區塊 */}
-      <NewsletterForm />
     </>
   );
 }
