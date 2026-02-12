@@ -2,7 +2,7 @@
 
 - [x] 1.1 更新 `tailwind.config.ts`：調整色彩變數 (Accents Only 策略)
 - [x] 1.2 更新 `src/app/globals.css`：設定 Monochrome 基底色與 Typography (Full Sans)
-- [ ] 1.3 測試：驗證色彩與字體變更生效
+- [x] 1.3 測試：驗證色彩與字體變更生效
 
 ## 2. Layout 核心 - Minimal Navigation
 
@@ -10,7 +10,7 @@
 - [x] 2.2 建立 `src/components/public/layout/SideDrawer.tsx` (導航面板)
 - [x] 2.3 實作 Drawer 開關邏輯 (Zustand 或 Context)
 - [x] 2.4 實作 Drawer 內容 (Avatar, Bio, Links, Social)
-- [ ] 2.5 測試：撰寫 NavToggle 與 SideDrawer 互動測試
+- [x] 2.5 測試：撰寫 NavToggle 與 SideDrawer 互動測試
 
 ## 3. Footer 系統 - Widget Framework
 
