@@ -1,0 +1,357 @@
+/**
+ * @file Email 通知模組測試
+ * @description 測試 Email 通知功能（新評論通知、回覆通知）
+ */
+
+import {
+  createEmailTransporter,
+  sendNewCommentNotification,
+  sendReplyNotification,
+} from '@/lib/email';
+import * as nodemailer from 'nodemailer';
+
+// Mock nodemailer
+jest.mock('nodemailer');
+
+describe('Email 通知模組', () => {
+  let mockTransporter: any;
+  let mockSendMail: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    mockSendMail = jest.fn().mockResolvedValue({ messageId: 'test-id' });
+    mockTransporter = {
+      sendMail: mockSendMail,
+    };
+
+    (nodemailer.createTransport as jest.Mock).mockReturnValue(mockTransporter);
+  });
+
+  describe('createEmailTransporter', () => {
+    it('應在所有 SMTP 環境變數存在時建立 transporter', () => {
+      process.env.SMTP_HOST = 'smtp.example.com';
+      process.env.SMTP_PORT = '587';
+      process.env.SMTP_USER = 'user@example.com';
+      process.env.SMTP_PASS = 'password';
+      process.env.ADMIN_EMAIL = 'admin@example.com';
+
+      const transporter = createEmailTransporter();
+
+      expect(transporter).not.toBeNull();
+      expect(nodemailer.createTransport).toHaveBeenCalledWith({
+        host: 'smtp.example.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: 'user@example.com',
+          pass: 'password',
+        },
+      });
+
+      // Cleanup
+      delete process.env.SMTP_HOST;
+      delete process.env.SMTP_PORT;
+      delete process.env.SMTP_USER;
+      delete process.env.SMTP_PASS;
+      delete process.env.ADMIN_EMAIL;
+    });
+
+    it('應在任一 SMTP 環境變數缺少時回傳 null', () => {
+      delete process.env.SMTP_HOST;
+      delete process.env.SMTP_PORT;
+      delete process.env.SMTP_USER;
+      delete process.env.SMTP_PASS;
+      delete process.env.ADMIN_EMAIL;
+
+      const transporter = createEmailTransporter();
+      expect(transporter).toBeNull();
+    });
+
+    it('應在 SMTP_HOST 缺少時回傳 null', () => {
+      delete process.env.SMTP_HOST;
+      process.env.SMTP_PORT = '587';
+      process.env.SMTP_USER = 'user@example.com';
+      process.env.SMTP_PASS = 'password';
+      process.env.ADMIN_EMAIL = 'admin@example.com';
+
+      const transporter = createEmailTransporter();
+      expect(transporter).toBeNull();
+
+      // Cleanup
+      delete process.env.SMTP_PORT;
+      delete process.env.SMTP_USER;
+      delete process.env.SMTP_PASS;
+      delete process.env.ADMIN_EMAIL;
+    });
+  });
+
+  describe('sendNewCommentNotification', () => {
+    beforeEach(() => {
+      process.env.SMTP_HOST = 'smtp.example.com';
+      process.env.SMTP_PORT = '587';
+      process.env.SMTP_USER = 'user@example.com';
+      process.env.SMTP_PASS = 'password';
+      process.env.ADMIN_EMAIL = 'admin@example.com';
+    });
+
+    afterEach(() => {
+      delete process.env.SMTP_HOST;
+      delete process.env.SMTP_PORT;
+      delete process.env.SMTP_USER;
+      delete process.env.SMTP_PASS;
+      delete process.env.ADMIN_EMAIL;
+    });
+
+    it('應成功發送新評論通知給管理員', async () => {
+      const mockComment = {
+        id: 'comment-1',
+        authorName: '測試用戶',
+        authorEmail: 'user@example.com',
+        content: '這是一則測試評論',
+      };
+
+      const mockPost = {
+        id: 'post-1',
+        title: '測試文章',
+        slug: 'test-post',
+      };
+
+      await sendNewCommentNotification(mockComment, mockPost);
+
+      expect(mockSendMail).toHaveBeenCalledTimes(1);
+      expect(mockSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: 'user@example.com',
+          to: 'admin@example.com',
+          subject: '[NovaScribe] 測試用戶 在「測試文章」發表了新評論',
+        })
+      );
+    });
+
+    it('應在 transporter 為 null 時直接返回', async () => {
+      delete process.env.SMTP_HOST;
+
+      const mockComment = {
+        id: 'comment-1',
+        authorName: '測試用戶',
+        authorEmail: 'user@example.com',
+        content: '這是一則測試評論',
+      };
+
+      const mockPost = {
+        id: 'post-1',
+        title: '測試文章',
+        slug: 'test-post',
+      };
+
+      await sendNewCommentNotification(mockComment, mockPost);
+
+      expect(mockSendMail).not.toHaveBeenCalled();
+    });
+
+    it('應包含 HTML 內容', async () => {
+      const mockComment = {
+        id: 'comment-1',
+        authorName: '測試用戶',
+        authorEmail: 'user@example.com',
+        content: '這是一則測試評論',
+      };
+
+      const mockPost = {
+        id: 'post-1',
+        title: '測試文章',
+        slug: 'test-post',
+      };
+
+      await sendNewCommentNotification(mockComment, mockPost);
+
+      expect(mockSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          html: expect.stringContaining('測試文章'),
+        })
+      );
+    });
+  });
+
+  describe('sendReplyNotification', () => {
+    beforeEach(() => {
+      process.env.SMTP_HOST = 'smtp.example.com';
+      process.env.SMTP_PORT = '587';
+      process.env.SMTP_USER = 'user@example.com';
+      process.env.SMTP_PASS = 'password';
+      process.env.ADMIN_EMAIL = 'admin@example.com';
+    });
+
+    afterEach(() => {
+      delete process.env.SMTP_HOST;
+      delete process.env.SMTP_PORT;
+      delete process.env.SMTP_USER;
+      delete process.env.SMTP_PASS;
+      delete process.env.ADMIN_EMAIL;
+    });
+
+    it('應成功發送回覆通知給原評論者', async () => {
+      const mockReply = {
+        id: 'reply-1',
+        authorName: '管理員',
+        content: '謝謝您的評論',
+      };
+
+      const mockParentComment = {
+        id: 'comment-1',
+        authorName: '原評論者',
+        authorEmail: 'commenter@example.com',
+        content: '原始評論內容',
+      };
+
+      const mockPost = {
+        id: 'post-1',
+        title: '測試文章',
+        slug: 'test-post',
+      };
+
+      await sendReplyNotification(mockReply, mockParentComment, mockPost);
+
+      expect(mockSendMail).toHaveBeenCalledTimes(1);
+      expect(mockSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: 'user@example.com',
+          to: 'commenter@example.com',
+          subject: '[NovaScribe] 管理員 回覆了您的評論',
+        })
+      );
+    });
+
+    it('應在 transporter 為 null 時直接返回', async () => {
+      delete process.env.SMTP_HOST;
+
+      const mockReply = {
+        id: 'reply-1',
+        authorName: '管理員',
+        content: '謝謝您的評論',
+      };
+
+      const mockParentComment = {
+        id: 'comment-1',
+        authorName: '原評論者',
+        authorEmail: 'commenter@example.com',
+        content: '原始評論內容',
+      };
+
+      const mockPost = {
+        id: 'post-1',
+        title: '測試文章',
+        slug: 'test-post',
+      };
+
+      await sendReplyNotification(mockReply, mockParentComment, mockPost);
+
+      expect(mockSendMail).not.toHaveBeenCalled();
+    });
+
+    it('應在 parentComment.authorEmail 為 null 時不發送', async () => {
+      const mockReply = {
+        id: 'reply-1',
+        authorName: '管理員',
+        content: '謝謝您的評論',
+      };
+
+      const mockParentComment = {
+        id: 'comment-1',
+        authorName: '原評論者',
+        authorEmail: null,
+        content: '原始評論內容',
+      };
+
+      const mockPost = {
+        id: 'post-1',
+        title: '測試文章',
+        slug: 'test-post',
+      };
+
+      await sendReplyNotification(mockReply, mockParentComment, mockPost);
+
+      expect(mockSendMail).not.toHaveBeenCalled();
+    });
+
+    it('應在 parentComment.authorEmail 為 undefined 時不發送', async () => {
+      const mockReply = {
+        id: 'reply-1',
+        authorName: '管理員',
+        content: '謝謝您的評論',
+      };
+
+      const mockParentComment = {
+        id: 'comment-1',
+        authorName: '原評論者',
+        authorEmail: undefined,
+        content: '原始評論內容',
+      };
+
+      const mockPost = {
+        id: 'post-1',
+        title: '測試文章',
+        slug: 'test-post',
+      };
+
+      await sendReplyNotification(mockReply, mockParentComment, mockPost);
+
+      expect(mockSendMail).not.toHaveBeenCalled();
+    });
+
+    it('應在 parentComment.authorEmail 為空字串時不發送', async () => {
+      const mockReply = {
+        id: 'reply-1',
+        authorName: '管理員',
+        content: '謝謝您的評論',
+      };
+
+      const mockParentComment = {
+        id: 'comment-1',
+        authorName: '原評論者',
+        authorEmail: '',
+        content: '原始評論內容',
+      };
+
+      const mockPost = {
+        id: 'post-1',
+        title: '測試文章',
+        slug: 'test-post',
+      };
+
+      await sendReplyNotification(mockReply, mockParentComment, mockPost);
+
+      expect(mockSendMail).not.toHaveBeenCalled();
+    });
+
+    it('應包含 HTML 內容', async () => {
+      const mockReply = {
+        id: 'reply-1',
+        authorName: '管理員',
+        content: '謝謝您的評論',
+      };
+
+      const mockParentComment = {
+        id: 'comment-1',
+        authorName: '原評論者',
+        authorEmail: 'commenter@example.com',
+        content: '原始評論內容',
+      };
+
+      const mockPost = {
+        id: 'post-1',
+        title: '測試文章',
+        slug: 'test-post',
+      };
+
+      await sendReplyNotification(mockReply, mockParentComment, mockPost);
+
+      expect(mockSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          html: expect.stringContaining('測試文章'),
+        })
+      );
+    });
+  });
+});

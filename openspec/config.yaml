@@ -1,0 +1,39 @@
+schema: spec-driven
+
+context: |
+  語言：繁體中文
+  所有規格文件、提案、設計文件、任務清單等產出物一律使用繁體中文撰寫。
+  技術用語（如 API、REST、GraphQL、SEO、SSR 等）保留英文。
+  程式碼範例、檔案路徑、變數名稱保留英文。
+
+  技術棧：
+  - 框架：Next.js（最新版本，App Router）
+  - 資料庫：PostgreSQL 18
+  - ORM：Prisma
+  - 語言：TypeScript
+  - 樣式：Tailwind CSS
+  - 測試：Jest + React Testing Library + Playwright（E2E）
+
+  開發流程：
+  - 強制使用 TDD（測試驅動開發）
+  - 先撰寫測試，再實作功能
+  - 所有功能必須有對應的單元測試和整合測試
+  - 測試覆蓋率目標：80% 以上
+
+  專案類型：個人部落格系統（NovaScribe）
+
+rules:
+  proposal:
+    - 必須說明功能的目標使用者和使用情境
+    - 必須評估對 SEO 的影響
+  specs:
+    - 使用 Given/When/Then 格式撰寫場景
+    - 必須涵蓋正常流程和異常流程
+    - 必須考慮效能和安全性需求
+  design:
+    - 必須包含資料庫 schema 設計
+    - 必須說明 API 端點設計
+    - 必須考慮 SEO 最佳化策略
+  tasks:
+    - 每個任務必須包含對應的測試項目
+    - 任務須按照 TDD 順序排列（先寫測試，再實作）
