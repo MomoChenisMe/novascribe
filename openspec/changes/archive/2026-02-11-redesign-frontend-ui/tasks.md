@@ -117,4 +117,4 @@
 - [x] 13.2 建立 Migration Guide 文件 (元件庫使用說明)
 - [x] 13.3 更新 README.md (新增 Design System 章節)
 - [x] 13.4 執行最終的測試覆蓋率檢查 (目標 >= 80%) (跳過)
-- [ ] 13.5 Git commit 並推送至 main branch (跳過)
+- [x] 13.5 Git commit 並推送至 main branch
