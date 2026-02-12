@@ -6,10 +6,10 @@
 
 ## 2. Layout 核心 - Minimal Navigation
 
-- [ ] 2.1 建立 `src/components/public/layout/NavToggle.tsx` (Hamburger Button)
-- [ ] 2.2 建立 `src/components/public/layout/SideDrawer.tsx` (導航面板)
-- [ ] 2.3 實作 Drawer 開關邏輯 (Zustand 或 Context)
-- [ ] 2.4 實作 Drawer 內容 (Avatar, Bio, Links, Social)
+- [x] 2.1 建立 `src/components/public/layout/NavToggle.tsx` (Hamburger Button)
+- [x] 2.2 建立 `src/components/public/layout/SideDrawer.tsx` (導航面板)
+- [x] 2.3 實作 Drawer 開關邏輯 (Zustand 或 Context)
+- [x] 2.4 實作 Drawer 內容 (Avatar, Bio, Links, Social)
 - [ ] 2.5 測試：撰寫 NavToggle 與 SideDrawer 互動測試
 
 ## 3. Footer 系統 - Widget Framework
