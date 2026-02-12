@@ -33,10 +33,10 @@
 - [x] 5.1 建立 `src/components/public/layout/LayoutMinimal.tsx`
 - [x] 5.2 修改 `src/app/(public)/layout.tsx`：套用 LayoutMinimal
 - [x] 5.3 移除舊版 `Navbar` 與 `Footer` 引用
-- [ ] 5.4 測試：全站 E2E 測試 (導航流暢度、Footer 互動)
+- [x] 5.4 測試：全站 E2E 測試 (導航流暢度、Footer 互動)
 
 ## 6. 最終驗證
 
-- [ ] 6.1 執行視覺回歸測試 (Visual Regression Test)
-- [ ] 6.2 檢查 Accessibility (Focus trap in Modal/Drawer)
-- [ ] 6.3 更新文件
+- [x] 6.1 執行視覺回歸測試 (Visual Regression Test)
+- [x] 6.2 檢查 Accessibility (Focus trap in Modal/Drawer)
+- [x] 6.3 更新文件
