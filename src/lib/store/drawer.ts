@@ -15,3 +15,4 @@ export const useDrawerStore = create<DrawerState>((set) => ({
   close: () => set({ isOpen: false }),
   toggle: () => set((state) => ({ isOpen: !state.isOpen })),
 }));
+
