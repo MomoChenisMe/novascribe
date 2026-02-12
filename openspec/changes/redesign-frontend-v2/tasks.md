@@ -14,25 +14,25 @@
 
 ## 3. Footer 系統 - Widget Framework
 
-- [ ] 3.1 定義 Widget Config 結構 (`src/config/widgets.ts`)
-- [ ] 3.2 建立 `src/components/public/widgets/WidgetModal.tsx` (通用 Modal)
-- [ ] 3.3 建立 `src/components/public/widgets/RichTextWidget.tsx`
-- [ ] 3.4 建立 `src/components/public/widgets/ImageGridWidget.tsx`
-- [ ] 3.5 建立 `src/components/public/layout/FooterBar.tsx` (整合 Widget 連結)
-- [ ] 3.6 測試：驗證 Widget Modal 開啟與內容渲染
+- [x] 3.1 定義 Widget Config 結構 (`src/config/widgets.ts`)
+- [x] 3.2 建立 `src/components/public/widgets/WidgetModal.tsx` (通用 Modal)
+- [x] 3.3 建立 `src/components/public/widgets/RichTextWidget.tsx`
+- [x] 3.4 建立 `src/components/public/widgets/ImageGridWidget.tsx`
+- [x] 3.5 建立 `src/components/public/layout/FooterBar.tsx` (整合 Widget 連結)
+- [x] 3.6 測試：驗證 Widget Modal 開啟與內容渲染
 
 ## 4. 首頁重構 - Magazine View
 
-- [ ] 4.1 建立 `src/components/public/home/FeaturedHero.tsx` (大圖 Hero)
-- [ ] 4.2 建立 `src/components/public/home/VisualGrid.tsx` (3 欄卡片)
-- [ ] 4.3 修改 `src/app/(public)/page.tsx`：整合 Hero 與 Grid
-- [ ] 4.4 測試：驗證首頁響應式佈局 (Mobile 1 欄, Desktop 3 欄)
+- [x] 4.1 建立 `src/components/public/home/FeaturedHero.tsx` (大圖 Hero)
+- [x] 4.2 建立 `src/components/public/home/VisualGrid.tsx` (3 欄卡片)
+- [x] 4.3 修改 `src/app/(public)/page.tsx`：整合 Hero 與 Grid
+- [x] 4.4 測試：驗證首頁響應式佈局 (Mobile 1 欄, Desktop 3 欄)
 
 ## 5. 全站整合
 
-- [ ] 5.1 建立 `src/components/public/layout/LayoutMinimal.tsx`
-- [ ] 5.2 修改 `src/app/(public)/layout.tsx`：套用 LayoutMinimal
-- [ ] 5.3 移除舊版 `Navbar` 與 `Footer` 引用
+- [x] 5.1 建立 `src/components/public/layout/LayoutMinimal.tsx`
+- [x] 5.2 修改 `src/app/(public)/layout.tsx`：套用 LayoutMinimal
+- [x] 5.3 移除舊版 `Navbar` 與 `Footer` 引用
 - [ ] 5.4 測試：全站 E2E 測試 (導航流暢度、Footer 互動)
 
 ## 6. 最終驗證
